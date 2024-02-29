@@ -13,8 +13,8 @@ public class Camera {
     final protected double scale;
 
     public Camera(Player player) {
-        this.screenWidth = player.identifyPacket.screenWidth;
-        this.screenHeight = player.identifyPacket.screenHeight;
+        this.screenWidth = player.identifyPacket.screenWidth();
+        this.screenHeight = player.identifyPacket.screenHeight();
 
         this.scale = calculateCameraScale(player.getMass());
         this.x = player.getX() - screenWidth / this.scale / 2;

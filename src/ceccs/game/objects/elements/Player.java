@@ -91,8 +91,8 @@ public class Player {
             Double relY = null;
 
             if (mouseEvent != null) {
-                relX = mouseEvent.x - getRelativeX(player);
-                relY = mouseEvent.y - getRelativeY(player);
+                relX = mouseEvent.x() - getRelativeX(player);
+                relY = mouseEvent.y() - getRelativeY(player);
 
                 maxVx = playerVelocities[closestNumber(playerVelocities, relX / 1000)];
                 maxVy = playerVelocities[closestNumber(playerVelocities, relY / 1000)];
@@ -330,8 +330,8 @@ public class Player {
             double explosionDelta = wasSpike
                 ? maxSplit / 360.0 * i
                 : Math.atan2(
-                    mouseEvent.y - playerBlob.getRelativeY(this),
-                    mouseEvent.x - playerBlob.getRelativeX(this)
+                    mouseEvent.y() - playerBlob.getRelativeY(this),
+                    mouseEvent.x() - playerBlob.getRelativeX(this)
                 );
 
             double halfSize = playerBlob.mass / 2;
@@ -370,8 +370,8 @@ public class Player {
             }
 
             double delta = Math.atan2(
-                mouseEvent.y - playerBlob.getRelativeY(this),
-                mouseEvent.x - playerBlob.getRelativeX(this)
+                mouseEvent.y() - playerBlob.getRelativeY(this),
+                mouseEvent.x() - playerBlob.getRelativeX(this)
             );
 
             playerBlob.mass = playerBlob.mass - pelletMass;
@@ -396,7 +396,7 @@ public class Player {
     }
 
     public void updateKeyEvent(KeyPacket keyEvent) {
-        keyEvents.put(keyEvent.keycode, keyEvent.pressed);
+        keyEvents.put(keyEvent.keycode(), keyEvent.pressed());
     }
 
     public boolean visibilityCulling(Camera camera) {
