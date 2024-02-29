@@ -10,7 +10,7 @@ public class GZip {
 
     public static byte[] compress(byte[] data) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream(data.length);
-        GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputStream, 65534);
+        GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputStream, data.length);
 
         gzipOutputStream.write(data);
         gzipOutputStream.close();
@@ -20,7 +20,7 @@ public class GZip {
 
     public static byte[] decompress(byte[] data) throws IOException {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
-        GZIPInputStream gzipInputStream = new GZIPInputStream(inputStream, 65534);
+        GZIPInputStream gzipInputStream = new GZIPInputStream(inputStream, data.length);
 
         return gzipInputStream.readAllBytes();
     }

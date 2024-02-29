@@ -2,7 +2,10 @@ package ceccs.game.utils;
 
 import ceccs.game.objects.elements.Blob;
 
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.UUID;
 
 public class ConsolidateBlobs {
 

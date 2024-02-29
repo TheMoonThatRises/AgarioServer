@@ -1,9 +1,6 @@
 package ceccs.network;
 
-import ceccs.game.Game;
-
 import java.net.InetAddress;
-import java.util.HashMap;
 import java.util.UUID;
 
 public class PlayerSocket {

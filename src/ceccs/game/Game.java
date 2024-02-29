@@ -1,19 +1,24 @@
 package ceccs.game;
 
 import ceccs.game.objects.Camera;
-import ceccs.game.objects.elements.*;
-import ceccs.game.utils.Utilities;
+import ceccs.game.objects.elements.Food;
+import ceccs.game.objects.elements.Pellet;
+import ceccs.game.objects.elements.Player;
+import ceccs.game.objects.elements.Virus;
+import ceccs.network.data.IdentifyPacket;
 import ceccs.network.data.KeyPacket;
 import ceccs.network.data.MousePacket;
-import ceccs.network.data.IdentifyPacket;
 import javafx.util.Pair;
 import org.json.JSONObject;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static ceccs.game.configs.VirusConfigs.maxVirusCount;
 import static ceccs.game.configs.FoodConfigs.maxFoodCount;
+import static ceccs.game.configs.VirusConfigs.maxVirusCount;
 
 public class Game {
 
@@ -45,30 +50,23 @@ public class Game {
             @Override
             public void run() {
                 // spawn all queued players
-                for (Pair<UUID, IdentifyPacket> playerInfo : spawnQueue) {
-                    players.put(playerInfo.getKey(), new Player(playerInfo.getKey(), playerInfo.getValue(), self));
-                }
-
+                spawnQueue.forEach((playerInfo) -> players.put(playerInfo.getKey(), new Player(playerInfo.getKey(), playerInfo.getValue(), self)));
                 spawnQueue.clear();
 
                 // despawn all queued players
-                for (UUID uuid : despawnQueue) {
-                    players.remove(uuid);
-                }
-
+                despawnQueue.forEach(players::remove);
                 despawnQueue.clear();
 
-                // update player physics
+                // update physics
                 players.forEach((id, player) -> player.positionTick());
-                players.forEach((id, player) -> player.collisionTick(System.nanoTime()));
-                players.forEach((id, player) -> player.keypressTicks(System.nanoTime()));
-
-                // update env physics
                 pellets.forEach((id, pellet) -> pellet.positionTick());
 
+                players.forEach((id, player) -> player.collisionTick(System.nanoTime()));
                 viruses.forEach((id, virus) -> virus.collisionTick());
                 pellets.forEach((id, pellet) -> pellet.collisionTick());
                 foods.forEach((id, food) -> food.collisionTick());
+
+                players.forEach((id, player) -> player.keypressTicks(System.nanoTime()));
 
                 // load back items to env
                 if (foods.size() < maxFoodCount) {

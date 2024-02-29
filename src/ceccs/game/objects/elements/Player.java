@@ -6,9 +6,9 @@ import ceccs.game.objects.Camera;
 import ceccs.game.utils.ConsolidateBlobs;
 import ceccs.game.utils.PhysicsMap;
 import ceccs.game.utils.Utilities;
+import ceccs.network.data.IdentifyPacket;
 import ceccs.network.data.KeyPacket;
 import ceccs.network.data.MousePacket;
-import ceccs.network.data.IdentifyPacket;
 import javafx.scene.paint.Paint;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -20,9 +20,9 @@ import java.util.HashMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static ceccs.game.configs.VirusConfigs.*;
 import static ceccs.game.configs.PelletConfigs.*;
 import static ceccs.game.configs.PlayerConfigs.*;
+import static ceccs.game.configs.VirusConfigs.virusConsumeMass;
 import static ceccs.game.utils.Utilities.*;
 
 public class Player {
@@ -194,33 +194,27 @@ public class Player {
 
     public Player(double mass, Paint fill, UUID uuid, IdentifyPacket identifyPacket, Game game) {
         this(
-                Utilities.random.nextDouble(PhysicsMap.width),
-                Utilities.random.nextDouble(PhysicsMap.height),
-                0, 0, mass, fill, uuid, identifyPacket, game
+            Utilities.random.nextDouble(PhysicsMap.width),
+            Utilities.random.nextDouble(PhysicsMap.height),
+            0, 0, mass, fill, uuid, identifyPacket, game
         );
     }
 
     public Player(UUID uuid, IdentifyPacket identifyPacket, Game game) {
         this(
-                Utilities.random.nextDouble(PhysicsMap.width),
-                Utilities.random.nextDouble(PhysicsMap.height),
-                0, 0, playerDefaultMass,
-                Utilities.randomColor(), uuid, identifyPacket, game
+            Utilities.random.nextDouble(PhysicsMap.width),
+            Utilities.random.nextDouble(PhysicsMap.height),
+            0, 0, playerDefaultMass,
+            Utilities.randomColor(), uuid, identifyPacket, game
         );
     }
 
     public double getX() {
         return playerBlobs.values().stream().max(Comparator.comparingDouble(b -> b.mass)).get().getX();
-//        return
-//            playerBlobs.stream().map(blob -> blob.mass.get() * blob.x).reduce(0.0, Double::sum) /
-//            playerBlobs.stream().map(blob -> blob.mass.get()).reduce(0.0, Double::sum);
     }
 
     public double getY() {
         return playerBlobs.values().stream().max(Comparator.comparingDouble(b -> b.mass)).get().getY();
-//        return
-//            playerBlobs.stream().map(blob -> blob.mass.get() * blob.y).reduce(0.0, Double::sum) /
-//            playerBlobs.stream().map(blob -> blob.mass.get()).reduce(0.0, Double::sum);
     }
 
     public void keypressTicks(long time) {

@@ -8,7 +8,6 @@ import javafx.scene.paint.Paint;
 import org.json.JSONObject;
 
 import java.util.AbstractMap;
-import java.util.HashMap;
 import java.util.UUID;
 
 public class Blob {
@@ -63,7 +62,7 @@ public class Blob {
     }
 
     public void removeFromArray() {
-        parentArray.remove(uuid, this);
+        parentArray.remove(uuid);
     }
 
     public void positionTick() {

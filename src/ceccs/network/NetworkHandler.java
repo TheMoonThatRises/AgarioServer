@@ -7,7 +7,9 @@ import ceccs.network.utils.GZip;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -128,11 +130,6 @@ public class NetworkHandler {
                         playerSockets.get(playerUUID).setTerminate();
 
                         System.out.printf("player with uuid %s and address %s:%d requested to terminate\n", playerUUID, incomingAddress, port);
-
-                        handleWritePacket(
-                            playerSockets.get(playerUUID),
-                            OP_CODES.SERVER_TERMINATE
-                        );
                     }
                     default -> System.out.println("unhandled op code: " + op);
                 }
