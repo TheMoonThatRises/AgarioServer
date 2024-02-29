@@ -294,7 +294,7 @@ public class Player {
                                 }
                             }
                         }
-                        case PLAYER -> {} // TODO: Networking and reworking
+                        case PLAYER -> {} // TODO: doesn't work? needs separate loop
                         default -> System.out.println("Unknown blob interaction type: " + blob.getType());
                     }
 

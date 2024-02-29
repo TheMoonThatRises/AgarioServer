@@ -31,6 +31,8 @@ public class NetworkHandler {
         this.playerSockets = new ConcurrentHashMap<>();
         this.serverSocket = new DatagramSocket(port, address);
 
+        this.serverSocket.setTrafficClass(0x10);
+
         this.game = game;
 
         this.socketListener = new Thread(() -> {
@@ -65,7 +67,10 @@ public class NetworkHandler {
                         playerSockets.remove(playerSocket.getUUID());
 
                         if (didTimeout) {
-                            System.out.printf("player with uuid %s and address %s:%d timed out\n", playerSocket.getUUID(), playerSocket.getAddress(), playerSocket.getPort());
+                            System.out.printf(
+                                "player with uuid %s and address %s:%d timed out\n",
+                                playerSocket.getUUID(), playerSocket.getAddress(), playerSocket.getPort()
+                            );
                         }
 
                         handleWritePacket(playerSocket, OP_CODES.SERVER_TERMINATE);
@@ -108,7 +113,10 @@ public class NetworkHandler {
                         playerSockets.put(playerUUID, new PlayerSocket(incomingAddress, port));
                         game.spawnPlayer(playerUUID, IdentifyPacket.fromJSON(networkPacket.data));
 
-                        System.out.printf("player with uuid %s and address %s:%d requested to connect\n", playerUUID, incomingAddress, port);
+                        System.out.printf(
+                            "player with uuid %s and address %s:%d requested to connect\n",
+                            playerUUID, incomingAddress, port
+                        );
 
                         handleWritePacket(
                             playerSockets.get(playerUUID),
@@ -129,7 +137,10 @@ public class NetworkHandler {
                     case CLIENT_TERMINATE -> {
                         playerSockets.get(playerUUID).setTerminate();
 
-                        System.out.printf("player with uuid %s and address %s:%d requested to terminate\n", playerUUID, incomingAddress, port);
+                        System.out.printf(
+                            "player with uuid %s and address %s:%d requested to terminate\n",
+                            playerUUID, incomingAddress, port
+                        );
                     }
                     default -> System.out.println("unhandled op code: " + op);
                 }
