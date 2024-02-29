@@ -260,7 +260,7 @@ public class Player {
                         checkBlob.cooldowns.merge < time
                     ) {
                         if (checkCollision(playerBlob, checkBlob)) {
-                            playerBlob.mass = playerBlob.mass + checkBlob.mass;
+                            playerBlob.mass += checkBlob.mass;
 
                             playerBlobs.remove(uuidList.get(j));
                         }
@@ -283,10 +283,10 @@ public class Player {
 
                 if (checkCollision(playerBlob, blob) && rDiff < 0) {
                     switch (blob.getType()) {
-                        case FOOD -> playerBlob.mass = playerBlob.mass + blob.mass;
-                        case PELLET -> playerBlob.mass = playerBlob.mass + pelletConsumeMass;
+                        case FOOD -> playerBlob.mass += blob.mass;
+                        case PELLET -> playerBlob.mass += pelletConsumeMass;
                         case SPIKE -> {
-                            playerBlob.mass = playerBlob.mass + virusConsumeMass;
+                            playerBlob.mass += virusConsumeMass;
 
                             if (playerBlobs.size() < playerMaxSplits) {
                                 for (int k = 0; k < (playerMaxSplits - playerBlobs.size()) * 2 / 3; ++k) {
@@ -336,7 +336,7 @@ public class Player {
 
             double halfSize = playerBlob.mass / 2;
 
-            playerBlob.mass = playerBlob.mass - halfSize;
+            playerBlob.mass -= halfSize;
 
             double splitRadius = Math.sqrt(halfSize / Math.PI);
 
@@ -374,7 +374,7 @@ public class Player {
                 mouseEvent.x() - playerBlob.getRelativeX(this)
             );
 
-            playerBlob.mass = playerBlob.mass - pelletMass;
+            playerBlob.mass -= pelletMass;
 
             double pelletRadius = Math.sqrt(pelletMass / Math.PI);
 

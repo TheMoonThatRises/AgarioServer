@@ -11,6 +11,9 @@ public class VirusConfigs {
 
     final static public double virusCriticalMass = virusMass + (pelletMass * 4 / 3) * 7;
 
+    final static public double virusFriction = 0.01;
+    final static public double virusVelocity = 0.8;
+
     final static public double maxVirusCount = (PhysicsMap.width * PhysicsMap.height) / (100 * 100);
 
 }

@@ -60,6 +60,7 @@ public class Game {
                 // update physics
                 players.forEach((id, player) -> player.positionTick());
                 pellets.forEach((id, pellet) -> pellet.positionTick());
+                viruses.forEach((id, virus) -> virus.positionTick());
 
                 players.forEach((id, player) -> player.collisionTick(System.nanoTime()));
                 viruses.forEach((id, virus) -> virus.collisionTick());
