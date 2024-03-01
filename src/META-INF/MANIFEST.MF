@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Main-Class: ceccs.Server
+Class-Path: json-20240205.jar
+

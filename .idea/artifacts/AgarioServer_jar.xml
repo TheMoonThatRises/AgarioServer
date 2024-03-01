@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact name="AgarioServer:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/AgarioServer_jar</output-path>
+    <root id="root">
+      <element id="archive" name="AgarioServer.jar">
+        <element id="module-output" name="AgarioServer" />
+      </element>
+      <element id="library" level="project" name="json" />
+    </root>
+  </artifact>
+</component>
