@@ -9,6 +9,6 @@ public class PelletConfigs {
     final static public double pelletConsumeMass = 12;
     final static public double playerMinSizePellet = 35;
 
-    final static public long pelletCooldown = 300_000_000;
+    final static public long pelletCooldown = 150_000_000;
 
 }
