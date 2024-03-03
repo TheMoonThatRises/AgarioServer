@@ -42,7 +42,7 @@ public class Utilities {
     public static boolean checkTouch(Blob blob1, Blob blob2) {
         double[] values = checkValues(blob1, blob2);
 
-        return values[0] >= values[1] * values[1];
+        return values[0] <= values[2] * values[2];
     }
 
     public static double[] repositionBlob(Blob blob, double r2, double delta) {

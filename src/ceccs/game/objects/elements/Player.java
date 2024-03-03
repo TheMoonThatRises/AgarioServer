@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static ceccs.game.configs.PelletConfigs.*;
@@ -169,22 +170,22 @@ public class Player {
     final public UUID uuid;
     final public IdentifyPacket identifyPacket;
 
-    protected HashMap<UUID, PlayerBlob> playerBlobs;
+    protected ConcurrentHashMap<UUID, PlayerBlob> playerBlobs;
 
     MousePacket mouseEvent;
-    HashMap<Integer, Boolean> keyEvents;
+    ConcurrentHashMap<Integer, Boolean> keyEvents;
 
     final protected Game game;
 
     public Player(double x, double y, double vx, double vy, double mass, Paint fill, UUID uuid, IdentifyPacket identifyPacket, Game game) {
-        this.playerBlobs = new HashMap<>();
+        this.playerBlobs = new ConcurrentHashMap<>();
 
         UUID childUUID = UUID.randomUUID();
 
-        this.playerBlobs.put(childUUID, new PlayerBlob(x, y, vx, vy, mass, fill, childUUID, uuid, game));
+        this.playerBlobs.put(childUUID, new PlayerBlob(x, y, vx, vy, mass, fill, uuid, childUUID, game));
 
         this.mouseEvent = null;
-        this.keyEvents = new HashMap<>();
+        this.keyEvents = new ConcurrentHashMap<>();
 
         this.uuid = uuid;
         this.identifyPacket = identifyPacket;
@@ -204,7 +205,7 @@ public class Player {
         this(
             Utilities.random.nextDouble(PhysicsMap.width),
             Utilities.random.nextDouble(PhysicsMap.height),
-            0, 0, playerDefaultMass,
+            0, 0, 1_000,
             Utilities.randomColor(), uuid, identifyPacket, game
         );
     }
@@ -266,7 +267,7 @@ public class Player {
                         }
                     } else if (
                         checkTouch(playerBlob, checkBlob) &&
-                        checkBlob.mass < playerBlob.mass
+                        checkBlob.mass <= playerBlob.mass
                     ) {
                         double[] pos = repositionBlob(playerBlob, checkBlob);
 
@@ -310,12 +311,20 @@ public class Player {
         }
 
         int maxSplit = playerBlobs.size() - 1;
+        double spikedSplitSize = 0;
 
         if (wasSpike) {
             maxSplit = (int) (spikedBlob.mass / playerMinSplitSize);
+            spikedSplitSize = spikedBlob.mass / maxSplit;
         }
 
-        ArrayList<UUID> uuidList = new ArrayList<>(playerBlobs.keySet());
+        ArrayList<UUID> uuidList = new ArrayList<>(
+            playerBlobs.values()
+                .stream()
+                .sorted((blob1, blob2) -> (int) (blob2.mass - blob1.mass))
+                .map(blob -> blob.uuid)
+                .toList()
+        );
 
         for (int i = maxSplit; i >= 0; --i) {
             PlayerBlob playerBlob = wasSpike ? spikedBlob : playerBlobs.get(uuidList.get(i));
@@ -328,22 +337,22 @@ public class Player {
             }
 
             double explosionDelta = wasSpike
-                ? maxSplit / 360.0 * i
-                : Math.atan2(
+                    ? 360.0 / maxSplit * i
+                    : Math.atan2(
                     mouseEvent.y() - playerBlob.getRelativeY(this),
                     mouseEvent.x() - playerBlob.getRelativeX(this)
                 );
 
-            double halfSize = playerBlob.mass / 2;
+            double splitSize = wasSpike ? spikedSplitSize : playerBlob.mass / 2;
 
-            playerBlob.mass -= halfSize;
+            playerBlob.mass -= splitSize;
 
-            double splitRadius = Math.sqrt(halfSize / Math.PI);
+            double splitRadius = Math.sqrt(splitSize / Math.PI);
 
             double[] pos = repositionBlob(playerBlob, splitRadius, explosionDelta);
 
             UUID childUUID = UUID.randomUUID();
-            playerBlobs.put(childUUID, new PlayerBlob(pos[0], pos[1], halfSize, true, playerBlob.fill, childUUID, uuid, game));
+            playerBlobs.put(childUUID, new PlayerBlob(pos[0], pos[1], splitSize, true, playerBlob.fill, uuid, childUUID, game));
 
             playerBlobs.get(childUUID).cooldowns.split = time;
             playerBlob.cooldowns.split = time;
