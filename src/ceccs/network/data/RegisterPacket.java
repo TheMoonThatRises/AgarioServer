@@ -4,12 +4,12 @@ import org.json.JSONObject;
 
 import java.util.UUID;
 
-public record RegisterPacket(double width, double height, UUID playerUUID) {
+public record RegisterPacket(double width, double height, double maxFramerate, UUID playerUUID) {
 
     public JSONObject toJSON() {
         return new JSONObject(String.format(
-                "{\"width\":%f,\"height\":%f,\"player_uuid\":%s}",
-                width, height, playerUUID.toString()
+                "{\"width\":%f,\"height\":%f,\"max_framerate\":%f,\"player_uuid\":%s}",
+                width, height, maxFramerate, playerUUID.toString()
         ));
     }
 

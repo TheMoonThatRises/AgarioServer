@@ -1,5 +1,6 @@
 package ceccs.network;
 
+import ceccs.Server;
 import ceccs.game.Game;
 import ceccs.game.utils.PhysicsMap;
 import ceccs.network.data.*;
@@ -121,7 +122,7 @@ public class NetworkHandler {
                         handleWritePacket(
                             playerSockets.get(playerUUID),
                             OP_CODES.SERVER_IDENTIFY_OK,
-                            new RegisterPacket(PhysicsMap.width, PhysicsMap.height, playerUUID).toJSON()
+                            new RegisterPacket(PhysicsMap.width, PhysicsMap.height, Server.maxFramerate, playerUUID).toJSON()
                         );
                     }
                     case CLIENT_PING -> {
@@ -181,6 +182,15 @@ public class NetworkHandler {
     public void start() {
         socketListener.start();
         socketWriterTimer.scheduleAtFixedRate(socketWriter, 0, 5);
+    }
+
+    public void stop() {
+        socketListener.interrupt();
+        socketWriterTimer.cancel();
+    }
+
+    public void terminateAll() {
+        playerSockets.values().forEach(player -> handleWritePacket(player, OP_CODES.SERVER_TERMINATE));
     }
 
 }
