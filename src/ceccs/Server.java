@@ -9,6 +9,8 @@ import java.net.UnknownHostException;
 
 public class Server {
 
+    final public static double maxFramerate = 120;
+
     final public static int PORT = 2351;
     final public static InetAddress ADDRESS;
 
@@ -32,6 +34,11 @@ public class Server {
         System.out.println("loading network handler");
         System.out.println("using address " + ADDRESS + ":" + PORT);
         NetworkHandler networkHandler = new NetworkHandler(PORT, ADDRESS, game);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            networkHandler.stop();
+            networkHandler.terminateAll();
+        }));
 
         System.out.println("starting network handler");
         networkHandler.start();
