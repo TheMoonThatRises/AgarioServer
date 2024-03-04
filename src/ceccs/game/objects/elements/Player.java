@@ -332,7 +332,7 @@ public class Player {
                 playerBlob.mass < playerMinSplitSize ||
                 (!wasSpike && playerBlob.cooldowns.split + playerSplitCooldown > time)
             ) {
-                return;
+                continue;
             }
 
             double explosionDelta = wasSpike
