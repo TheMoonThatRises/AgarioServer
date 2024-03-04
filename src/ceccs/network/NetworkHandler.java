@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -28,9 +29,9 @@ public class NetworkHandler {
 
     final private Game game;
 
-    public NetworkHandler(int port, InetAddress address, Game game) throws IOException {
+    public NetworkHandler(InetSocketAddress server, Game game) throws IOException {
         this.playerSockets = new ConcurrentHashMap<>();
-        this.serverSocket = new DatagramSocket(port, address);
+        this.serverSocket = new DatagramSocket(server.getPort(), server.getAddress());
 
         this.serverSocket.setTrafficClass(0x10);
 
