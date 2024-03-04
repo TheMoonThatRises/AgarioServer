@@ -30,9 +30,9 @@ public class Blob {
 
     protected Paint fill;
 
-    protected AbstractMap<UUID, ? extends Blob> parentArray;
+    protected AbstractMap<UUID, ? extends Blob> parentMap;
 
-    public Blob(double x, double y, double vx, double vy, double ax, double ay, double mass, Paint fill, Game game, UUID uuid, AbstractMap<UUID, ? extends Blob> parentArray) {
+    public Blob(double x, double y, double vx, double vy, double ax, double ay, double mass, Paint fill, Game game, UUID uuid, AbstractMap<UUID, ? extends Blob> parentMap) {
         this.x = x;
         this.y = y;
         this.vx = vx;
@@ -46,23 +46,23 @@ public class Blob {
 
         this.game = game;
 
-        this.parentArray = parentArray;
+        this.parentMap = parentMap;
 
         this.uuid = uuid;
 
         this.fill = fill;
     }
 
-    public Blob(double x, double y, double mass, Paint fill, Game game, UUID uuid, AbstractMap<UUID, ? extends Blob> parentArray) {
-        this(x, y, 0, 0, 0, 0, mass, fill, game, uuid, parentArray);
+    public Blob(double x, double y, double mass, Paint fill, Game game, UUID uuid, AbstractMap<UUID, ? extends Blob> parentMap) {
+        this(x, y, 0, 0, 0, 0, mass, fill, game, uuid, parentMap);
     }
 
     public BLOB_TYPES getType() {
         return BLOB_TYPES.GENERIC;
     }
 
-    public void removeFromArray() {
-        parentArray.remove(uuid);
+    public void removeFromMap() {
+        parentMap.remove(uuid);
     }
 
     public void positionTick() {

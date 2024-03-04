@@ -90,7 +90,7 @@ public class Virus extends Blob {
                     split(pellet);
                 }
 
-                pellet.removeFromArray();
+                pellet.removeFromMap();
             }
         }
     }
