@@ -16,7 +16,6 @@ import org.json.JSONObject;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -260,7 +259,7 @@ public class Player {
                         playerBlob.cooldowns.merge < time &&
                         checkBlob.cooldowns.merge < time
                     ) {
-                        if (checkCollision(playerBlob, checkBlob)) {
+                        if (checkCollision(playerBlob, checkBlob) && j > i) {
                             playerBlob.mass += checkBlob.mass;
 
                             playerBlobs.remove(uuidList.get(j));
@@ -299,7 +298,7 @@ public class Player {
                         default -> System.out.println("Unknown blob interaction type: " + blob.getType());
                     }
 
-                    blob.removeFromArray();
+                    blob.removeFromMap();
                 }
             }
         }
