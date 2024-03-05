@@ -299,13 +299,11 @@ public class Player {
                             playerBlob.mass += virusConsumeMass;
 
                             if (playerBlobs.size() < playerMaxSplits) {
-                                for (int k = 0; k < (playerMaxSplits - playerBlobs.size()) * 2 / 3; ++k) {
-                                    playerSplit(time, true, playerBlob);
-                                }
+                                playerSplit(time, true, playerBlob);
                             }
                         }
                         case PLAYER -> {} // TODO: doesn't work? needs separate loop
-                        default -> System.out.println("Unknown blob interaction type: " + blob.getType());
+                        default -> System.out.println("unknown blob interaction type: " + blob.getType());
                     }
 
                     blob.removeFromMap();
@@ -321,10 +319,12 @@ public class Player {
 
         int maxSplit = playerBlobs.size() - 1;
         double spikedSplitSize = 0;
+        double splitCircumference = 0;
 
         if (wasSpike) {
             maxSplit = (int) (spikedBlob.mass / playerMinSplitSize);
             spikedSplitSize = spikedBlob.mass / maxSplit;
+            splitCircumference = spikedSplitSize * maxSplit / 2 / Math.PI;
         }
 
         ArrayList<UUID> uuidList = new ArrayList<>(
@@ -346,8 +346,8 @@ public class Player {
             }
 
             double explosionDelta = wasSpike
-                    ? 360.0 / maxSplit * i
-                    : Math.atan2(
+                ? 360.0 / maxSplit * i
+                : Math.atan2(
                     mouseEvent.y() - playerBlob.getRelativeY(this),
                     mouseEvent.x() - playerBlob.getRelativeX(this)
                 );
@@ -356,7 +356,7 @@ public class Player {
 
             playerBlob.mass -= splitSize;
 
-            double splitRadius = Math.sqrt(splitSize / Math.PI);
+            double splitRadius = wasSpike ? splitCircumference : Math.sqrt(splitSize / Math.PI);
 
             double[] pos = repositionBlob(playerBlob, splitRadius, explosionDelta);
 
