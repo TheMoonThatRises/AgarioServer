@@ -59,6 +59,8 @@ public class Player {
 
         protected Cooldowns cooldowns;
 
+        protected long lastDecayTick;
+
         public PlayerBlob(double x, double y, double vx, double vy, double ax, double ay, double mass, boolean hasSplitSpeedBoost, Paint fill, UUID parentUUID, UUID uuid, Game game) {
             super(x, y, vx, vy, ax, ay, mass, fill, game, uuid, null);
 
@@ -71,6 +73,8 @@ public class Player {
             this.cooldowns = new Cooldowns();
 
             this.parentUUID = parentUUID;
+
+            this.lastDecayTick = 0;
         }
 
         public PlayerBlob(double x, double y, double vx, double vy, double mass, Paint fill, UUID parentUUID, UUID uuid, Game game) {
@@ -138,6 +142,16 @@ public class Player {
             y += vy * velScale;
         }
 
+        public void tickDelay(long time) {
+            if (lastDecayTick + 1_000_000_000 < time) {
+                if (mass > playerMinMassDecay) {
+                    mass *= 0.998;
+                }
+
+                lastDecayTick = time;
+            }
+        }
+
         @Override
         public JSONObject toJSON() {
             JSONObject parent = super.toJSON();
@@ -190,14 +204,6 @@ public class Player {
         this.identifyPacket = identifyPacket;
 
         this.game = game;
-    }
-
-    public Player(double mass, Paint fill, UUID uuid, IdentifyPacket identifyPacket, Game game) {
-        this(
-            Utilities.random.nextDouble(PhysicsMap.width),
-            Utilities.random.nextDouble(PhysicsMap.height),
-            0, 0, mass, fill, uuid, identifyPacket, game
-        );
     }
 
     public Player(UUID uuid, IdentifyPacket identifyPacket, Game game) {
@@ -253,6 +259,7 @@ public class Player {
                 .filter(blob -> Utilities.checkCollision(blob, playerBlob))
                 .collect(Collectors.toCollection(ArrayList::new));
 
+            playerBlob.tickDelay(time);
             playerBlob.collisionTick();
 
             for (int j = playerBlobs.size() - 1; j >= 0; --j) {
