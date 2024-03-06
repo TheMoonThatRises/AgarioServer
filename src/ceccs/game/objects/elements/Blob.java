@@ -4,6 +4,7 @@ import ceccs.game.Game;
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.objects.Camera;
 import ceccs.game.utils.PhysicsMap;
+import ceccs.game.utils.Utilities;
 import javafx.scene.paint.Paint;
 import org.json.JSONObject;
 
@@ -118,13 +119,17 @@ public class Blob {
         double relY = (y - camera.getY()) * camera.getScale();
         double relRadius = getPhysicsRadius() * camera.getScale();
 
-        return  !(
+        boolean defaultVisibility = !(
                 relX + relRadius < -10 ||
                 relX - relRadius > camera.getScreenWidth() + 10 ||
                 relY + relRadius < -10 ||
                 relY - relRadius > camera.getScreenHeight() + 10 ||
                 relRadius < 0.5
         );
+
+        return camera.getScale() < 3 && defaultVisibility && mass < 100
+            ? Utilities.random.nextDouble() > 0.6
+            : defaultVisibility;
     }
 
     public JSONObject toJSON() {
