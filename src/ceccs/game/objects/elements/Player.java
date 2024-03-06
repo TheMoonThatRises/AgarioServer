@@ -246,7 +246,7 @@ public class Player {
     public void collisionTick(long time) {
         ArrayList<Blob> allBlobs = ConsolidateBlobs.convert(
                 game.viruses, game.foods, game.pellets
-        ); //.stream().filter(Blob::isVisible).collect(Collectors.toCollection(ArrayList::new));
+        );
 
         for (int i = playerBlobs.size() - 1; i >= 0; --i) {
             ArrayList<UUID> uuidList = new ArrayList<>(playerBlobs.keySet());
