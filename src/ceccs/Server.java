@@ -11,20 +11,6 @@ public class Server {
 
     final public static double maxFramerate = 120;
 
-//    final public static int PORT = 2351;
-//    final public static InetAddress ADDRESS;
-//
-//    static {
-//        InetAddress tmpAddress;
-//        try {
-//            tmpAddress = InetAddress.getLocalHost();
-//        } catch (UnknownHostException exception) {
-//            System.err.println("failed to get localhost address: " + exception);
-//            tmpAddress = null;
-//        }
-//        ADDRESS = tmpAddress;
-//    }
-
     public static void main(String[] args) throws IOException {
         InetSocketAddress server = getServer();
 
