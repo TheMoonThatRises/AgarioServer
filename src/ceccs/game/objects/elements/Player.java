@@ -210,11 +210,15 @@ public class Player {
     }
 
     public double getX() {
-        return playerBlobs.values().stream().max(Comparator.comparingDouble(b -> b.mass)).get().getX();
+        return
+            playerBlobs.values().stream().map(blob -> blob.mass * blob.x).reduce(0.0, Double::sum) /
+            playerBlobs.values().stream().map(blob -> blob.mass).reduce(0.0, Double::sum);
     }
 
     public double getY() {
-        return playerBlobs.values().stream().max(Comparator.comparingDouble(b -> b.mass)).get().getY();
+        return
+            playerBlobs.values().stream().map(blob -> blob.mass * blob.y).reduce(0.0, Double::sum) /
+            playerBlobs.values().stream().map(blob -> blob.mass).reduce(0.0, Double::sum);
     }
 
     public void keypressTicks(long time) {
