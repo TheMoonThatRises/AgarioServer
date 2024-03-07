@@ -52,7 +52,9 @@ public class Server {
             try {
                 serverPort = Integer.parseInt(scanner.nextLine().trim());
             } catch (NumberFormatException exception) {
-                System.err.println("failed to parse server port input: " + exception);
+                exception.printStackTrace();
+
+                System.err.println("failed to parse server port input");
             }
         }
 

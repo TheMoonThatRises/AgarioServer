@@ -17,6 +17,7 @@ public class Camera {
         this.screenHeight = player.identifyPacket.screenHeight();
 
         this.scale = calculateCameraScale(player.getMass());
+
         this.x = player.getX() - screenWidth / this.scale / 2;
         this.y = player.getY() - screenHeight / this.scale / 2;
     }

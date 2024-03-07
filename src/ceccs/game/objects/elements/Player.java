@@ -1,5 +1,6 @@
 package ceccs.game.objects.elements;
 
+import ceccs.exceptions.InternalException;
 import ceccs.game.Game;
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.objects.Camera;
@@ -15,10 +16,12 @@ import org.json.JSONObject;
 
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import static ceccs.exceptions.InternalException.checkSafeDivision;
 import static ceccs.game.configs.PelletConfigs.*;
 import static ceccs.game.configs.PlayerConfigs.*;
 import static ceccs.game.configs.VirusConfigs.virusConsumeMass;
@@ -215,15 +218,41 @@ public class Player {
     }
 
     public double getX() {
-        return
-            playerBlobs.values().stream().map(blob -> blob.mass * blob.x).reduce(0.0, Double::sum) /
-            playerBlobs.values().stream().map(blob -> blob.mass).reduce(0.0, Double::sum);
+        double numerator = playerBlobs.values().stream().map(blob -> blob.mass * blob.x).reduce(0.0, Double::sum);
+        double denominator = playerBlobs.values().stream().map(blob -> blob.mass).reduce(0.0, Double::sum);
+
+        try {
+            return checkSafeDivision(numerator, denominator);
+        } catch (InternalException exception) {
+            exception.printStackTrace();
+
+            System.err.println("failed to get player x");
+
+            return getLegacyX();
+        }
     }
 
     public double getY() {
-        return
-            playerBlobs.values().stream().map(blob -> blob.mass * blob.y).reduce(0.0, Double::sum) /
-            playerBlobs.values().stream().map(blob -> blob.mass).reduce(0.0, Double::sum);
+        double numerator = playerBlobs.values().stream().map(blob -> blob.mass * blob.y).reduce(0.0, Double::sum);
+        double denominator = playerBlobs.values().stream().map(blob -> blob.mass).reduce(0.0, Double::sum);
+
+        try {
+            return checkSafeDivision(numerator, denominator);
+        } catch (InternalException exception) {
+            exception.printStackTrace();
+
+            System.err.println("failed to get player y");
+
+            return getLegacyY();
+        }
+    }
+
+    protected double getLegacyX() {
+        return playerBlobs.values().stream().max(Comparator.comparingDouble(b -> b.mass)).get().getX();
+    }
+
+    protected double getLegacyY() {
+        return playerBlobs.values().stream().max(Comparator.comparingDouble(b -> b.mass)).get().getY();
     }
 
     public void keypressTicks(long time) {

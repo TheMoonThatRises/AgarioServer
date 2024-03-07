@@ -47,7 +47,9 @@ public class NetworkHandler {
 
                     handleIncomingPacket(inPacket);
                 } catch (IOException exception) {
-                    System.err.println("failed receiving incoming packet: " + exception);
+                    exception.printStackTrace();
+
+                    System.err.println("failed receiving incoming packet");
                 }
             }
         });
@@ -154,6 +156,8 @@ public class NetworkHandler {
                 handleWritePacket(playerSocket, OP_CODES.OP_CODE_ERROR);
             });
         } catch (IOException exception) {
+            exception.printStackTrace();
+
             System.err.println("failed to decompress packet: " + exception);
         }
     }
@@ -169,10 +173,14 @@ public class NetworkHandler {
             try {
                 serverSocket.send(packet);
             } catch (IOException exception) {
-                System.err.println("failed to send game packet: " + exception);
+                exception.printStackTrace();
+
+                System.err.println("failed to send game packet");
             }
         } catch (IOException exception) {
-            System.err.println("failed to compress packet: " + exception);
+            exception.printStackTrace();
+
+            System.err.println("failed to compress packet");
         }
     }
 
