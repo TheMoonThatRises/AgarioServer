@@ -124,20 +124,20 @@ public class Game {
     }
 
     public JSONObject getGameState(UUID playerUUID) {
-        Camera camera = new Camera(players.get(playerUUID));
+        Camera camera = players.get(playerUUID).getCamera();
 
         JSONObject gameData = new JSONObject();
         gameData.put("foods", foods.values().stream().filter(food ->
-                food.visibilityCulling(camera)
+            food.visibilityCulling(camera)
         ).map(Food::toJSON).toList());
         gameData.put("pellets", pellets.values().stream().filter(pellets ->
-                pellets.visibilityCulling(camera)
+            pellets.visibilityCulling(camera)
         ).map(Pellet::toJSON).toList());
         gameData.put("viruses", viruses.values().stream().filter(virus ->
-                virus.visibilityCulling(camera)
+            virus.visibilityCulling(camera)
         ).map(Virus::toJSON).toList());
-        gameData.put("players", players.values().stream().filter(player ->
-                player.visibilityCulling(camera)
+        gameData.put("players", players.values().stream().filter(
+            Player::visibilityCulling
         ).map(Player::toJSON).toList());
 
         return gameData;

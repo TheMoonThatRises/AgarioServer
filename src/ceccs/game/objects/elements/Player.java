@@ -446,8 +446,12 @@ public class Player {
         keyEvents.put(keyEvent.keycode(), keyEvent.pressed());
     }
 
-    public boolean visibilityCulling(Camera camera) {
-        return playerBlobs.values().stream().anyMatch(playerBlob -> playerBlob.visibilityCulling(camera));
+    public Camera getCamera() {
+        return new Camera(this);
+    }
+
+    public boolean visibilityCulling() {
+        return playerBlobs.values().stream().anyMatch(playerBlob -> playerBlob.visibilityCulling(getCamera()));
     }
 
     public JSONObject toJSON() {
