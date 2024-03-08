@@ -96,17 +96,17 @@ public class Virus extends Blob {
     }
 
     private void split(Pellet criticalPellet) {
-        double delta = Math.atan2(
+        double theta = Math.atan2(
             criticalPellet.vy,
             criticalPellet.vx
         );
 
         mass /= 2;
 
-        double[] pos = repositionBlob(this, getPhysicsRadius(), delta);
+        double[] pos = repositionBlob(this, getPhysicsRadius(), theta);
 
         UUID splitUUID = UUID.randomUUID();
-        game.viruses.put(splitUUID, new Virus(pos[0], pos[1], delta, mass, game, splitUUID));
+        game.viruses.put(splitUUID, new Virus(pos[0], pos[1], theta, mass, game, splitUUID));
     }
 
 }

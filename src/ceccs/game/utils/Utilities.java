@@ -45,19 +45,19 @@ public class Utilities {
         return values[0] <= values[2] * values[2];
     }
 
-    public static double[] repositionBlob(Blob blob, double r2, double delta) {
+    public static double[] repositionBlob(Blob blob, double r2, double theta) {
         double collisionRadius = blob.getPhysicsRadius() + r2;
 
-        double xPos = blob.getX() + collisionRadius * Math.cos(delta);
-        double yPos = blob.getY() + collisionRadius * Math.sin(delta);
+        double xPos = blob.getX() + collisionRadius * Math.cos(theta);
+        double yPos = blob.getY() + collisionRadius * Math.sin(theta);
 
         return new double[] {xPos, yPos};
     }
 
     public static double[] repositionBlob(Blob blob1, Blob blob2) {
-        double delta = Math.atan2(blob2.getY() - blob1.getY(), blob2.getX() - blob1.getX());
+        double theta = Math.atan2(blob2.getY() - blob1.getY(), blob2.getX() - blob1.getX());
 
-        return repositionBlob(blob1, blob2.getPhysicsRadius(), delta);
+        return repositionBlob(blob1, blob2.getPhysicsRadius(), theta);
     }
 
     // https://stackoverflow.com/a/13318769

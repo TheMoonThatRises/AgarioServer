@@ -130,10 +130,10 @@ public class Player {
                 if (splitBoostVelocity <= 0) {
                     hasSplitSpeedBoost = false;
                 } else {
-                    double delta = Math.atan2(relY, relX);
+                    double theta = Math.atan2(relY, relX);
 
-                    double sVX = splitBoostVelocity * Math.cos(delta);
-                    double sVY = splitBoostVelocity * Math.sin(delta);
+                    double sVX = splitBoostVelocity * Math.cos(theta);
+                    double sVY = splitBoostVelocity * Math.sin(theta);
 
                     vx += sVX;
                     vy += sVY;
@@ -185,10 +185,10 @@ public class Player {
     final public UUID uuid;
     final public IdentifyPacket identifyPacket;
 
-    protected ConcurrentHashMap<UUID, PlayerBlob> playerBlobs;
+    final protected ConcurrentHashMap<UUID, PlayerBlob> playerBlobs;
 
-    MousePacket mouseEvent;
-    ConcurrentHashMap<Integer, Boolean> keyEvents;
+    protected MousePacket mouseEvent;
+    final protected ConcurrentHashMap<Integer, Boolean> keyEvents;
 
     final protected Game game;
 
@@ -353,7 +353,7 @@ public class Player {
         if (wasSpike) {
             maxSplit = (int) (spikedBlob.mass / playerMinSplitSize);
             spikedSplitSize = spikedBlob.mass / maxSplit;
-            splitCircumference = spikedSplitSize * maxSplit / 2 / Math.PI;
+            splitCircumference = Math.sqrt(spikedSplitSize / Math.PI) * maxSplit / Math.PI;
         }
 
         ArrayList<UUID> uuidList = new ArrayList<>(
@@ -374,7 +374,7 @@ public class Player {
                 continue;
             }
 
-            double explosionDelta = wasSpike
+            double explosionTheta = wasSpike
                 ? 360.0 / maxSplit * i
                 : Math.atan2(
                     mouseEvent.y() - playerBlob.getRelativeY(this),
@@ -387,7 +387,7 @@ public class Player {
 
             double splitRadius = wasSpike ? splitCircumference : Math.sqrt(splitSize / Math.PI);
 
-            double[] pos = repositionBlob(playerBlob, splitRadius, explosionDelta);
+            double[] pos = repositionBlob(playerBlob, splitRadius, explosionTheta);
 
             UUID childUUID = UUID.randomUUID();
             playerBlobs.put(childUUID, new PlayerBlob(pos[0], pos[1], splitSize, true, playerBlob.fill, uuid, childUUID, game));
@@ -416,7 +416,7 @@ public class Player {
                 return;
             }
 
-            double delta = Math.atan2(
+            double theta = Math.atan2(
                 mouseEvent.y() - playerBlob.getRelativeY(this),
                 mouseEvent.x() - playerBlob.getRelativeX(this)
             );
@@ -425,10 +425,10 @@ public class Player {
 
             double pelletRadius = Math.sqrt(pelletMass / Math.PI);
 
-            double[] pos = repositionBlob(playerBlob, pelletRadius, delta);
+            double[] pos = repositionBlob(playerBlob, pelletRadius, theta);
 
             UUID pelletUUID = UUID.randomUUID();
-            game.pellets.put(pelletUUID, new Pellet(pos[0], pos[1], delta, pelletMass, playerBlob.fill, game, pelletUUID));
+            game.pellets.put(pelletUUID, new Pellet(pos[0], pos[1], theta, pelletMass, playerBlob.fill, game, pelletUUID));
 
             playerBlob.cooldowns.pellet = time;
         });
