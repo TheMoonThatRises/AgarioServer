@@ -13,7 +13,7 @@ public class InternalPathFinder {
     final private Path path;
 
     static {
-        baseDirectory = Paths.get(System.getProperty("user.home"), ".ceccs_agario_server");
+        baseDirectory = Paths.get(System.getProperty("user.home"), ".ceccs_agario", "server");
 
         baseDirectory.toFile().mkdirs();
     }

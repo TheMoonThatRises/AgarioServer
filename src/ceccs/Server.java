@@ -2,6 +2,7 @@ package ceccs;
 
 import ceccs.game.Game;
 import ceccs.network.NetworkHandler;
+import ceccs.utils.Configurations;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -13,6 +14,9 @@ public class Server {
 
     public static void main(String[] args) throws IOException {
         InetSocketAddress server = getServer();
+
+        Configurations.shared.setProperty("server.ip", server.getHostString());
+        Configurations.shared.setProperty("server.port", String.valueOf(server.getPort()));
 
         System.out.println("spinning up game env");
         Game game = new Game();
