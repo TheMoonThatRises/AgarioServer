@@ -1,4 +1,4 @@
-package ceccs.exceptions;
+package ceccs.utils;
 
 public class InternalException extends Exception {
 

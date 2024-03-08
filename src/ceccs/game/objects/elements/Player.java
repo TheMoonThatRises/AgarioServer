@@ -1,6 +1,6 @@
 package ceccs.game.objects.elements;
 
-import ceccs.exceptions.InternalException;
+import ceccs.utils.InternalException;
 import ceccs.game.Game;
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.objects.Camera;
@@ -21,7 +21,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import static ceccs.exceptions.InternalException.checkSafeDivision;
+import static ceccs.utils.InternalException.checkSafeDivision;
 import static ceccs.game.configs.PelletConfigs.*;
 import static ceccs.game.configs.PlayerConfigs.*;
 import static ceccs.game.configs.VirusConfigs.virusConsumeMass;
