@@ -1,5 +1,7 @@
 package ceccs.game.configs;
 
+import ceccs.utils.InternalException;
+
 public class PlayerConfigs {
 
     final static public double playerStartMass = 10;
@@ -24,10 +26,14 @@ public class PlayerConfigs {
         return 30_000_000_000L + (long) (mass * 0.02); // 30_000_000_000L
     }
 
-    public static double calcVelocityModifier(double mass) {
+    public static double calcVelocityModifier(double mass) throws InternalException {
         double dv = 2 / 0.1;
         double n = Math.log(dv) / Math.log(10) / 3;
         double A = 0.1 * Math.pow(10, 4 * n);
+
+        if (mass == 0) {
+            throw new InternalException("unsafe zero: mass = " + mass);
+        }
 
         return A / Math.pow(mass, n);
     }

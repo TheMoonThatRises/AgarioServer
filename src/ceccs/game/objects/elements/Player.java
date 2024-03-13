@@ -15,6 +15,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.awt.event.KeyEvent;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.UUID;
@@ -55,6 +56,9 @@ public class Player {
         protected double maxVx;
         protected double maxVy;
 
+        protected double relX;
+        protected double relY;
+
         protected boolean hasSplitSpeedBoost;
 
         protected double splitBoostVelocity;
@@ -63,11 +67,14 @@ public class Player {
 
         protected long lastDecayTick;
 
-        public PlayerBlob(double x, double y, double vx, double vy, double ax, double ay, double mass, boolean hasSplitSpeedBoost, Paint fill, UUID parentUUID, UUID uuid, Game game) {
-            super(x, y, vx, vy, ax, ay, mass, fill, game, uuid, null);
+        public PlayerBlob(double x, double y, double vx, double vy, double ax, double ay, double mass, boolean hasSplitSpeedBoost, Paint fill, UUID parentUUID, UUID uuid, AbstractMap<UUID, PlayerBlob> parentMap) {
+            super(x, y, vx, vy, ax, ay, mass, fill, uuid, parentMap);
 
             this.maxVx = 0;
             this.maxVy = 0;
+
+            this.relX = 0;
+            this.relY = 0;
 
             this.hasSplitSpeedBoost = hasSplitSpeedBoost;
             this.splitBoostVelocity = playerSplitVelocity;
@@ -79,12 +86,12 @@ public class Player {
             this.lastDecayTick = 0;
         }
 
-        public PlayerBlob(double x, double y, double vx, double vy, double mass, Paint fill, UUID parentUUID, UUID uuid, Game game) {
-            this(x, y, vx, vy, playerMouseAcc, playerMouseAcc, mass, false, fill, parentUUID, uuid, game);
+        public PlayerBlob(double x, double y, double vx, double vy, double mass, Paint fill, UUID parentUUID, UUID uuid, AbstractMap<UUID, PlayerBlob> parentMap) {
+            this(x, y, vx, vy, playerMouseAcc, playerMouseAcc, mass, false, fill, parentUUID, uuid, parentMap);
         }
 
-        public PlayerBlob(double x, double y, double mass, boolean hasSplitSpeedBoost, Paint fill, UUID parentUUID, UUID uuid, Game game) {
-            this(x, y, 0, 0, playerMouseAcc, playerMouseAcc, mass, hasSplitSpeedBoost, fill, parentUUID, uuid, game);
+        public PlayerBlob(double x, double y, double mass, boolean hasSplitSpeedBoost, Paint fill, UUID parentUUID, UUID uuid, AbstractMap<UUID, PlayerBlob> parentMap) {
+            this(x, y, 0, 0, playerMouseAcc, playerMouseAcc, mass, hasSplitSpeedBoost, fill, parentUUID, uuid, parentMap);
         }
 
         @Override
@@ -93,9 +100,6 @@ public class Player {
         }
 
         public void positionTick(Player player, MousePacket mouseEvent) {
-            Double relX = null;
-            Double relY = null;
-
             if (mouseEvent != null) {
                 relX = mouseEvent.x() - getRelativeX(player);
                 relY = mouseEvent.y() - getRelativeY(player);
@@ -104,7 +108,17 @@ public class Player {
                 maxVy = playerVelocities[closestNumber(playerVelocities, relY / 1000)];
             }
 
-            double velScale = calcVelocityModifier(mass);
+            double velScale;
+
+            try {
+                velScale = calcVelocityModifier(mass);
+            } catch (InternalException exception) {
+                exception.printStackTrace();
+
+                System.err.println("mass is zero in position tick");
+
+                return;
+            }
 
             ax = maxVx < 0
                 ? -Math.abs(ax)
@@ -124,7 +138,7 @@ public class Player {
                     : maxVy
             );
 
-            if (hasSplitSpeedBoost && relX != null) {
+            if (hasSplitSpeedBoost) {
                 splitBoostVelocity -= playerSplitDecay;
 
                 if (splitBoostVelocity <= 0) {
@@ -170,13 +184,13 @@ public class Player {
         }
 
         public double getRelativeX(Player player) {
-            Camera camera = new Camera(player);
+            Camera camera = player.getCamera();
 
             return (x - camera.getX()) * camera.getScale();
         }
 
         public double getRelativeY(Player player) {
-            Camera camera = new Camera(player);
+            Camera camera = player.getCamera();
 
             return (y - camera.getY()) * camera.getScale();
         }
@@ -192,12 +206,14 @@ public class Player {
 
     final protected Game game;
 
+    protected Camera prevCamera;
+
     public Player(double x, double y, double vx, double vy, double mass, Paint fill, UUID uuid, IdentifyPacket identifyPacket, Game game) {
         this.playerBlobs = new ConcurrentHashMap<>();
 
         UUID childUUID = UUID.randomUUID();
 
-        this.playerBlobs.put(childUUID, new PlayerBlob(x, y, vx, vy, mass, fill, uuid, childUUID, game));
+        this.playerBlobs.put(childUUID, new PlayerBlob(x, y, vx, vy, mass, fill, uuid, childUUID, this.playerBlobs));
 
         this.mouseEvent = null;
         this.keyEvents = new ConcurrentHashMap<>();
@@ -206,6 +222,8 @@ public class Player {
         this.identifyPacket = identifyPacket;
 
         this.game = game;
+
+        this.prevCamera = this.getCamera();
     }
 
     public Player(UUID uuid, IdentifyPacket identifyPacket, Game game) {
@@ -261,7 +279,15 @@ public class Player {
                 if (value) {
                     switch (key) {
                         case KeyEvent.VK_W -> playerPellet(time);
-                        case KeyEvent.VK_SPACE -> playerSplit(time, false, null);
+                        case KeyEvent.VK_SPACE -> {
+                            try {
+                                playerSplit(time, false, null);
+                            } catch (InternalException exception) {
+                                exception.printStackTrace();
+
+                                System.err.println("failed to split");
+                            }
+                        }
                     }
                 }
             });
@@ -301,7 +327,7 @@ public class Player {
                         if (checkCollision(playerBlob, checkBlob) && j > i) {
                             playerBlob.mass += checkBlob.mass;
 
-                            playerBlobs.remove(uuidList.get(j));
+                            checkBlob.removeFromMap();
                         }
                     } else if (
                         checkTouch(playerBlob, checkBlob) &&
@@ -328,7 +354,13 @@ public class Player {
                             playerBlob.mass += virusConsumeMass;
 
                             if (playerBlobs.size() < playerMaxSplits) {
-                                playerSplit(time, true, playerBlob);
+                                try {
+                                    playerSplit(time, true, playerBlob);
+                                } catch (InternalException exception) {
+                                    exception.printStackTrace();
+
+                                    System.err.println("failed to split");
+                                }
                             }
                         }
                         case PLAYER -> {} // TODO: doesn't work? needs separate loop
@@ -341,7 +373,7 @@ public class Player {
         }
     }
 
-    private void playerSplit(long time, boolean wasSpike, PlayerBlob spikedBlob) {
+    private void playerSplit(long time, boolean wasSpike, PlayerBlob spikedBlob) throws InternalException {
         if (playerBlobs.size() >= playerMaxSplits) {
             return;
         }
@@ -351,9 +383,16 @@ public class Player {
         double splitCircumference = 0;
 
         if (wasSpike) {
-            maxSplit = (int) (spikedBlob.mass / playerMinSplitSize);
+            maxSplit = (int) (spikedBlob.mass / playerMinSplitSize) - 1;
+
+            if (maxSplit <= 0) {
+                throw new InternalException("unsafe value: max split = " + maxSplit);
+            }
+
             spikedSplitSize = spikedBlob.mass / maxSplit;
             splitCircumference = Math.sqrt(spikedSplitSize / Math.PI) * maxSplit / Math.PI;
+
+            spikedBlob.mass = spikedSplitSize;
         }
 
         ArrayList<UUID> uuidList = new ArrayList<>(
@@ -375,7 +414,7 @@ public class Player {
             }
 
             double explosionTheta = wasSpike
-                ? 360.0 / maxSplit * i
+                ? (360.0 / maxSplit) * i
                 : Math.atan2(
                     mouseEvent.y() - playerBlob.getRelativeY(this),
                     mouseEvent.x() - playerBlob.getRelativeX(this)
@@ -383,19 +422,40 @@ public class Player {
 
             double splitSize = wasSpike ? spikedSplitSize : playerBlob.mass / 2;
 
-            playerBlob.mass -= splitSize;
+            if (!wasSpike) {
+                playerBlob.mass -= splitSize;
+            }
+
+            if (playerBlob.mass <= 0) {
+                throw new InternalException("player blob mass less than zero: mass = " + playerBlob.mass);
+            }
 
             double splitRadius = wasSpike ? splitCircumference : Math.sqrt(splitSize / Math.PI);
 
             double[] pos = repositionBlob(playerBlob, splitRadius, explosionTheta);
 
-            UUID childUUID = UUID.randomUUID();
-            playerBlobs.put(childUUID, new PlayerBlob(pos[0], pos[1], splitSize, true, playerBlob.fill, uuid, childUUID, game));
+            if (Double.isNaN(pos[0]) || Double.isNaN(pos[1])) {
+                try {
+                    throw new InternalException("x or y is NaN: x = " + pos[0] + ", y = " + pos[1]);
+                } catch (InternalException exception) {
+                    exception.printStackTrace();
 
-            playerBlobs.get(childUUID).cooldowns.split = time;
+                    System.err.println("x or y pos are NaN");
+
+                    pos[0] = spikedBlob.x;
+                    pos[1] = spikedBlob.y;
+                }
+            }
+
+            UUID childUUID = UUID.randomUUID();
+
+            PlayerBlob newBlob = new PlayerBlob(pos[0], pos[1], splitSize, true, playerBlob.fill, uuid, childUUID, playerBlobs);
+            playerBlobs.put(childUUID, newBlob);
+
+            newBlob.cooldowns.split = time;
             playerBlob.cooldowns.split = time;
 
-            playerBlobs.get(childUUID).cooldowns.merge = time + calcMergeCooldown(playerBlobs.get(childUUID).mass);
+            newBlob.cooldowns.merge = time + calcMergeCooldown(newBlob.mass);
 
             long playerMergeCD = calcMergeCooldown(playerBlob.mass);
 
@@ -447,7 +507,19 @@ public class Player {
     }
 
     public Camera getCamera() {
-        return new Camera(this);
+        try {
+            Camera camera = new Camera(this);
+
+            prevCamera = camera;
+
+            return camera;
+        } catch (InternalException exception) {
+            exception.printStackTrace();
+
+            System.err.println("failed to get player camera");
+
+            return prevCamera;
+        }
     }
 
     public boolean visibilityCulling() {

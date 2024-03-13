@@ -1,6 +1,7 @@
 package ceccs.game.objects;
 
 import ceccs.game.objects.elements.Player;
+import ceccs.utils.InternalException;
 
 public class Camera {
 
@@ -12,7 +13,7 @@ public class Camera {
 
     final protected double scale;
 
-    public Camera(Player player) {
+    public Camera(Player player) throws InternalException {
         this.screenWidth = player.identifyPacket.screenWidth();
         this.screenHeight = player.identifyPacket.screenHeight();
 
@@ -22,12 +23,16 @@ public class Camera {
         this.y = player.getY() - screenHeight / this.scale / 2;
     }
 
-    private double calculateCameraScale(double mass) {
+    private double calculateCameraScale(double mass) throws InternalException {
         double dv = 50_000 / 300.0;
         double n = Math.log(dv) / Math.log(10) / 3;
         double A = 300 * Math.pow(10, 4 * n);
 
         double screenFactor = A / Math.pow(mass, n);
+
+        if (mass == 0) {
+            throw new InternalException("unsafe zero: mass = " + mass);
+        }
 
         return (screenWidth * screenWidth * Math.PI) / (screenFactor * mass);
     }
