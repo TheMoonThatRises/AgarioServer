@@ -17,8 +17,7 @@ public class Food extends Blob {
                 Utilities.random.nextDouble(PhysicsMap.width),
                 Utilities.random.nextDouble(PhysicsMap.height),
                 foodMaxSize > foodMinSize ? Utilities.random.nextDouble(foodMinSize, foodMaxSize) : foodMaxSize,
-                Utilities.randomColor(),
-                game, uuid, game.foods
+                Utilities.randomColor(), uuid, game.foods
         );
     }
 

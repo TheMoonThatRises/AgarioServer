@@ -21,21 +21,25 @@ public class Virus extends Blob {
 
     private boolean didFinish;
 
+    protected Game game;
+
     public Virus(Game game, UUID uuid) {
         super(
             Utilities.random.nextDouble(PhysicsMap.width),
             Utilities.random.nextDouble(PhysicsMap.height),
-            virusMass, Color.GREEN, game, uuid, game.viruses
+            virusMass, Color.GREEN, uuid, game.viruses
         );
 
         this.didFinish = true;
         this.projected = 0;
         this.time = 0;
+
+        this.game = game;
     }
 
     public Virus(double x, double y, double theta, double mass, Game game, UUID uuid) {
         super(
-            x, y, mass, Color.GREEN, game, uuid, game.viruses
+            x, y, mass, Color.GREEN, uuid, game.viruses
         );
 
         this.projected = virusVelocity / virusFriction;
@@ -48,6 +52,8 @@ public class Virus extends Blob {
         this.ay = -virusFriction * Math.sin(theta);
 
         this.didFinish = false;
+
+        this.game = game;
     }
 
     @Override

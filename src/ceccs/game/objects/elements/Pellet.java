@@ -17,7 +17,7 @@ public class Pellet extends Blob {
     private boolean didFinish;
 
     public Pellet(double x, double y, double theta, double mass, Paint fill, Game game, UUID uuid) {
-        super(x, y, 0, 0, 0, 0, mass, fill, game, uuid, game.pellets);
+        super(x, y, 0, 0, 0, 0, mass, fill, uuid, game.pellets);
 
         this.projected = pelletVelocity / pelletFriction;
         this.time = 0;

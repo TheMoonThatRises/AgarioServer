@@ -27,13 +27,11 @@ public class Blob {
 
     protected double mass;
 
-    protected Game game;
-
     protected Paint fill;
 
     protected AbstractMap<UUID, ? extends Blob> parentMap;
 
-    public Blob(double x, double y, double vx, double vy, double ax, double ay, double mass, Paint fill, Game game, UUID uuid, AbstractMap<UUID, ? extends Blob> parentMap) {
+    public Blob(double x, double y, double vx, double vy, double ax, double ay, double mass, Paint fill, UUID uuid, AbstractMap<UUID, ? extends Blob> parentMap) {
         this.x = x;
         this.y = y;
         this.vx = vx;
@@ -45,8 +43,6 @@ public class Blob {
         this.initialVx = vx;
         this.initialVy = vy;
 
-        this.game = game;
-
         this.parentMap = parentMap;
 
         this.uuid = uuid;
@@ -54,8 +50,8 @@ public class Blob {
         this.fill = fill;
     }
 
-    public Blob(double x, double y, double mass, Paint fill, Game game, UUID uuid, AbstractMap<UUID, ? extends Blob> parentMap) {
-        this(x, y, 0, 0, 0, 0, mass, fill, game, uuid, parentMap);
+    public Blob(double x, double y, double mass, Paint fill, UUID uuid, AbstractMap<UUID, ? extends Blob> parentMap) {
+        this(x, y, 0, 0, 0, 0, mass, fill, uuid, parentMap);
     }
 
     public BLOB_TYPES getType() {
