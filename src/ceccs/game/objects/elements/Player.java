@@ -63,7 +63,7 @@ public class Player {
 
         protected double splitBoostVelocity;
 
-        protected Cooldowns cooldowns;
+        final protected Cooldowns cooldowns;
 
         protected long lastDecayTick;
 
