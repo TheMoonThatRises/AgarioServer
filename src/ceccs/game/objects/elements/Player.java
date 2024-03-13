@@ -1,5 +1,6 @@
 package ceccs.game.objects.elements;
 
+import ceccs.network.PlayerSocket;
 import ceccs.utils.InternalException;
 import ceccs.game.Game;
 import ceccs.game.objects.BLOB_TYPES;
@@ -208,7 +209,9 @@ public class Player {
 
     protected Camera prevCamera;
 
-    public Player(double x, double y, double vx, double vy, double mass, Paint fill, UUID uuid, IdentifyPacket identifyPacket, Game game) {
+    final private PlayerSocket playerSocket;
+
+    public Player(double x, double y, double vx, double vy, double mass, Paint fill, UUID uuid, IdentifyPacket identifyPacket, Game game, PlayerSocket playerSocket) {
         this.playerBlobs = new ConcurrentHashMap<>();
 
         UUID childUUID = UUID.randomUUID();
@@ -224,14 +227,16 @@ public class Player {
         this.game = game;
 
         this.prevCamera = this.getCamera();
+
+        this.playerSocket = playerSocket;
     }
 
-    public Player(UUID uuid, IdentifyPacket identifyPacket, Game game) {
+    public Player(UUID uuid, IdentifyPacket identifyPacket, Game game, PlayerSocket playerSocket) {
         this(
             Utilities.random.nextDouble(PhysicsMap.width),
             Utilities.random.nextDouble(PhysicsMap.height),
             0, 0, 1_000,
-            Utilities.randomColor(), uuid, identifyPacket, game
+            Utilities.randomColor(), uuid, identifyPacket, game, playerSocket
         );
     }
 
@@ -299,6 +304,10 @@ public class Player {
     }
 
     public void collisionTick(long time) {
+        if (getMass() <= 0) {
+            playerSocket.setTerminate();
+        }
+
         ArrayList<Blob> allBlobs = ConsolidateBlobs.convert(
                 game.viruses, game.foods, game.pellets
         );
@@ -344,9 +353,9 @@ public class Player {
             for (int j = collideBlobs.size() - 1; j >= 0; --j) {
                 Blob blob = collideBlobs.get(j);
 
-                double rDiff = blob.getPhysicsRadius() - playerBlob.getPhysicsRadius();
+                double rDiff = playerBlob.getPhysicsRadius() - blob.getPhysicsRadius();
 
-                if (checkCollision(playerBlob, blob) && rDiff < 0) {
+                if (checkCollision(playerBlob, blob) && rDiff > 0) {
                     switch (blob.getType()) {
                         case FOOD -> playerBlob.mass += blob.mass;
                         case PELLET -> playerBlob.mass += pelletConsumeMass;
@@ -363,11 +372,34 @@ public class Player {
                                 }
                             }
                         }
-                        case PLAYER -> {} // TODO: doesn't work? needs separate loop
                         default -> System.out.println("unknown blob interaction type: " + blob.getType());
                     }
 
                     blob.removeFromMap();
+                }
+            }
+
+            ArrayList<UUID> enemyUUIDs = new ArrayList<>(game.players.keySet());
+
+            for (int j = enemyUUIDs.size() - 1; j >= 0; --j) {
+                Player enemy = game.players.get(enemyUUIDs.get(j));
+
+                if (enemy.uuid == uuid) {
+                    continue;
+                }
+
+                ArrayList<UUID> enemyPlayerBlobs = new ArrayList<>(enemy.playerBlobs.keySet());
+
+                for (int k = enemyPlayerBlobs.size() - 1; k >= 0; --k) {
+                    PlayerBlob enemyBlob = enemy.playerBlobs.get(enemyPlayerBlobs.get(k));
+
+                    double rDiff = playerBlob.getPhysicsRadius() - enemyBlob.getPhysicsRadius();
+
+                    if (checkCollision(enemyBlob, playerBlob) && rDiff > 0) {
+                        playerBlob.mass += enemyBlob.mass;
+
+                        enemyBlob.removeFromMap();
+                    }
                 }
             }
         }

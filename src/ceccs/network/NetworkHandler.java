@@ -114,8 +114,9 @@ public class NetworkHandler {
 
                 switch (op) {
                     case CLIENT_IDENTIFY -> {
-                        playerSockets.put(playerUUID, new PlayerSocket(incomingAddress, port));
-                        game.spawnPlayer(playerUUID, IdentifyPacket.fromJSON(networkPacket.data));
+                        PlayerSocket playerSocket = new PlayerSocket(incomingAddress, port);
+                        playerSockets.put(playerUUID, playerSocket);
+                        game.spawnPlayer(playerSocket, IdentifyPacket.fromJSON(networkPacket.data));
 
                         System.out.printf(
                             "player with uuid %s and address %s:%d requested to connect\n",

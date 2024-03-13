@@ -5,6 +5,7 @@ import ceccs.game.objects.elements.Food;
 import ceccs.game.objects.elements.Pellet;
 import ceccs.game.objects.elements.Player;
 import ceccs.game.objects.elements.Virus;
+import ceccs.network.PlayerSocket;
 import ceccs.network.data.IdentifyPacket;
 import ceccs.network.data.KeyPacket;
 import ceccs.network.data.MousePacket;
@@ -27,7 +28,7 @@ public class Game {
     final public ConcurrentHashMap<UUID, Pellet> pellets;
     final public ConcurrentHashMap<UUID, Virus> viruses;
 
-    final private ArrayList<Pair<UUID, IdentifyPacket>> spawnQueue;
+    final private ArrayList<Pair<PlayerSocket, IdentifyPacket>> spawnQueue;
     final private ArrayList<UUID> despawnQueue;
 
     final private TimerTask heartbeatTask;
@@ -50,7 +51,12 @@ public class Game {
             @Override
             public void run() {
                 // spawn all queued players
-                spawnQueue.forEach((playerInfo) -> players.put(playerInfo.getKey(), new Player(playerInfo.getKey(), playerInfo.getValue(), self)));
+                spawnQueue.forEach((playerInfo) ->
+                    players.put(
+                        playerInfo.getKey().getUUID(),
+                        new Player(playerInfo.getKey().getUUID(), playerInfo.getValue(), self, playerInfo.getKey())
+                    )
+                );
                 spawnQueue.clear();
 
                 // despawn all queued players
@@ -107,8 +113,8 @@ public class Game {
         }
     }
 
-    public void spawnPlayer(UUID uuid, IdentifyPacket identifyPacket) {
-        spawnQueue.add(new Pair<>(uuid, identifyPacket));
+    public void spawnPlayer(PlayerSocket playerSocket, IdentifyPacket identifyPacket) {
+        spawnQueue.add(new Pair<>(playerSocket, identifyPacket));
     }
 
     public void despawnPlayer(UUID uuid) {
