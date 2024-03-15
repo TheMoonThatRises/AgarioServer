@@ -15,23 +15,23 @@ public class InternalPathFinder {
         baseDirectory.toFile().mkdirs();
     }
 
-    public InternalPathFinder(String fileName) throws IOException {
+    public InternalPathFinder(String fileName, boolean overwrite) throws IOException {
         this.path = Paths.get(baseDirectory.toString(), fileName);
 
         this.path.toFile().getParentFile().mkdirs();
 
-        if (!this.path.toFile().createNewFile()) {
+        if (!this.path.toFile().createNewFile() && overwrite) {
             this.path.toFile().delete();
             this.path.toFile().createNewFile();
         }
     }
 
-    public InternalPathFinder(String... paths) throws IOException {
+    public InternalPathFinder(boolean overwrite, String... paths) throws IOException {
         this.path = Paths.get(baseDirectory.toString(), paths);
 
         this.path.toFile().getParentFile().mkdirs();
 
-        if (!this.path.toFile().createNewFile()) {
+        if (!this.path.toFile().createNewFile() && overwrite) {
             this.path.toFile().delete();
             this.path.toFile().createNewFile();
         }
@@ -42,11 +42,11 @@ public class InternalPathFinder {
     }
 
     public FileInputStream getInputStream() throws FileNotFoundException {
-        return new FileInputStream(this.path.toFile());
+        return new FileInputStream(path.toFile());
     }
 
     public FileOutputStream getOutputStream() throws FileNotFoundException {
-        return new FileOutputStream(this.path.toFile());
+        return new FileOutputStream(path.toFile());
     }
 
     public void writeToFile(String data, boolean append) throws IOException {

@@ -12,11 +12,13 @@ public class Server {
 
     final public static double maxFramerate = 120;
 
+    final public static Configurations configs = Configurations.shared;
+
     public static void main(String[] args) throws IOException {
         InetSocketAddress server = getServer();
 
-        Configurations.shared.setProperty("server.ip", server.getHostString());
-        Configurations.shared.setProperty("server.port", String.valueOf(server.getPort()));
+        configs.setProperty("server.ip", server.getHostString());
+        configs.setProperty("server.port", String.valueOf(server.getPort()));
 
         System.out.println("spinning up game env");
         Game game = new Game();
@@ -43,6 +45,17 @@ public class Server {
         Integer serverPort = null;
 
         Scanner scanner = new Scanner(System.in);
+
+        System.out.print("load previous server config? ([y]/n): ");
+
+        if (!scanner.nextLine().toLowerCase().contains("n") ) {
+            serverIp = configs.getProperty("server.ip");
+            serverPort = Integer.parseInt(configs.getProperty("server.port"));
+
+            System.out.println();
+
+            return new InetSocketAddress(serverIp, serverPort);
+        }
 
         while (serverIp.isEmpty()) {
             System.out.print("\nenter server ip: ");

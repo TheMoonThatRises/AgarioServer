@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Properties;
 
 public class Configurations {
@@ -23,14 +24,16 @@ public class Configurations {
         }
     }
 
-    public Configurations() throws IOException {
-        this.fileHandler = new InternalPathFinder("configs.cfg");
+    private Configurations() throws IOException {
+        this.fileHandler = new InternalPathFinder("configs.properties", false);
         this.properties = new Properties();
 
         try {
             this.readConfig();
         } catch (FileNotFoundException exception) {
-            this.writeConfig();
+            exception.printStackTrace();
+
+            System.err.println("failed to read config file");
         }
     }
 
