@@ -562,8 +562,9 @@ public class Player {
         JSONArray blobArray = new JSONArray(playerBlobs.values().stream().map(PlayerBlob::toJSON).toList());
 
         return new JSONObject(String.format(
-            "{\"uuid\":\"%s\",\"player_blobs\":%s}",
+            "{\"uuid\":\"%s\",\"username\":\"%s\",\"player_blobs\":%s}",
             uuid,
+            identifyPacket.username(),
             blobArray
         ));
     }
