@@ -17,16 +17,18 @@ public class Pellet extends Blob {
     private boolean didFinish;
 
     public Pellet(double x, double y, double theta, double mass, Paint fill, Game game, UUID uuid) {
-        super(x, y, 0, 0, 0, 0, mass, fill, uuid, game.pellets);
+        super(
+            x, y, 0, 0,
+            -pelletFriction * Math.cos(theta),
+            -pelletFriction * Math.sin(theta),
+            mass, fill, uuid, game.pellets
+        );
 
         this.projected = pelletVelocity / pelletFriction;
         this.time = 0;
 
         this.vx = pelletVelocity * Math.cos(theta);
         this.vy = pelletVelocity * Math.sin(theta);
-
-        this.ax = -pelletFriction * Math.cos(theta);
-        this.ay = -pelletFriction * Math.sin(theta);
 
         this.didFinish = false;
     }

@@ -1,6 +1,5 @@
 package ceccs.game.objects.elements;
 
-import ceccs.game.Game;
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.objects.Camera;
 import ceccs.game.utils.PhysicsMap;
@@ -22,9 +21,6 @@ public class Blob {
     protected double ax;
     protected double ay;
 
-    final protected double initialVx;
-    final protected double initialVy;
-
     protected double mass;
 
     protected Paint fill;
@@ -38,10 +34,8 @@ public class Blob {
         this.vy = vy;
         this.ax = ax;
         this.ay = ay;
-        this.mass = mass;
 
-        this.initialVx = vx;
-        this.initialVy = vy;
+        this.mass = mass;
 
         this.parentMap = parentMap;
 
