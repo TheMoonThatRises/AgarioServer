@@ -5,6 +5,7 @@ import ceccs.game.Game;
 import ceccs.game.utils.PhysicsMap;
 import ceccs.network.data.*;
 import ceccs.network.utils.GZip;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -156,6 +157,10 @@ public class NetworkHandler {
 
                 handleWritePacket(playerSocket, OP_CODES.OP_CODE_ERROR);
             });
+        } catch (JSONException exception) {
+            exception.printStackTrace();
+
+            System.err.println("failed to parse json: " + exception);
         } catch (IOException exception) {
             exception.printStackTrace();
 
