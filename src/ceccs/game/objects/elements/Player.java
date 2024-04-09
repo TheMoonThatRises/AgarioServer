@@ -488,14 +488,7 @@ public class Player {
             playerBlob.cooldowns.split = time;
 
             newBlob.cooldowns.merge = time + calcMergeCooldown(newBlob.mass);
-
-            long playerMergeCD = calcMergeCooldown(playerBlob.mass);
-
-            if (playerBlob.cooldowns.merge < time) {
-                playerBlob.cooldowns.merge = time + playerMergeCD;
-            } else {
-                playerBlob.cooldowns.merge += playerMergeCD;
-            }
+            playerBlob.cooldowns.merge = time + calcMergeCooldown(playerBlob.mass);
         }
     }
 
