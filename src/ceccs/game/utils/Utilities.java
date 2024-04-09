@@ -20,7 +20,12 @@ public class Utilities {
     }
 
     public static Color randomColor() {
-        return new Color(random.nextDouble(), random.nextDouble(), random.nextDouble(), 1);
+        return new Color(
+            random.nextDouble() / 2 + 0.5,
+            random.nextDouble() / 2 + 0.5,
+            random.nextDouble() / 2 + 0.5,
+            1
+        );
     }
 
     public static double[] checkValues(Blob blob1, Blob blob2) {
