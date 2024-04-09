@@ -10,7 +10,7 @@ import java.util.Scanner;
 
 public class Server {
 
-    final public static double maxFramerate = 120;
+    final public static double maxFramerate = 75;
 
     final public static Configurations configs = Configurations.shared;
 
