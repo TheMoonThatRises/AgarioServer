@@ -46,7 +46,7 @@ public class NetworkHandler {
                 try {
                     serverSocket.receive(inPacket);
 
-                    handleIncomingPacket(inPacket);
+                    new Thread(() -> handleIncomingPacket(inPacket)).start();
                 } catch (IOException exception) {
                     exception.printStackTrace();
 
@@ -196,7 +196,7 @@ public class NetworkHandler {
 
     public void start() {
         socketListener.start();
-        socketWriterTimer.scheduleAtFixedRate(socketWriter, 0, 5);
+        socketWriterTimer.scheduleAtFixedRate(socketWriter, 0, 10);
     }
 
     public void stop() {
