@@ -50,6 +50,16 @@ public class Utilities {
         return values[0] <= values[2] * values[2];
     }
 
+    public static double blobTheta(Blob blob1, Blob blob2) {
+        return Math.atan2(blob2.getY() - blob1.getY(), blob2.getX() - blob1.getX());
+    }
+
+    public static double overlapDelta(Blob blob1, Blob blob2) {
+        double[] values = checkValues(blob1, blob2);
+
+        return values[2] - Math.sqrt(values[0]);
+    }
+
     public static double[] repositionBlob(Blob blob, double r2, double theta) {
         double collisionRadius = blob.getPhysicsRadius() + r2;
 
@@ -60,7 +70,7 @@ public class Utilities {
     }
 
     public static double[] repositionBlob(Blob blob1, Blob blob2) {
-        double theta = Math.atan2(blob2.getY() - blob1.getY(), blob2.getX() - blob1.getX());
+        double theta = blobTheta(blob1, blob2);
 
         return repositionBlob(blob1, blob2.getPhysicsRadius(), theta);
     }

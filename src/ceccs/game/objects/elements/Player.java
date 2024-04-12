@@ -1,16 +1,16 @@
 package ceccs.game.objects.elements;
 
-import ceccs.network.PlayerSocket;
-import ceccs.utils.InternalException;
 import ceccs.game.Game;
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.objects.Camera;
 import ceccs.game.utils.ConsolidateBlobs;
 import ceccs.game.utils.PhysicsMap;
 import ceccs.game.utils.Utilities;
+import ceccs.network.PlayerSocket;
 import ceccs.network.data.IdentifyPacket;
 import ceccs.network.data.KeyPacket;
 import ceccs.network.data.MousePacket;
+import ceccs.utils.InternalException;
 import javafx.scene.paint.Paint;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -21,13 +21,14 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
-import static ceccs.utils.InternalException.checkSafeDivision;
 import static ceccs.game.configs.PelletConfigs.*;
 import static ceccs.game.configs.PlayerConfigs.*;
 import static ceccs.game.configs.VirusConfigs.virusConsumeMass;
 import static ceccs.game.utils.Utilities.*;
+import static ceccs.utils.InternalException.checkSafeDivision;
 
 public class Player {
 
@@ -57,6 +58,9 @@ public class Player {
         protected double maxVx;
         protected double maxVy;
 
+        final protected ConcurrentLinkedQueue<Double> axForces;
+        final protected ConcurrentLinkedQueue<Double> ayForces;
+
         protected double relX;
         protected double relY;
 
@@ -76,6 +80,9 @@ public class Player {
 
             this.relX = 0;
             this.relY = 0;
+
+            this.axForces = new ConcurrentLinkedQueue<>();
+            this.ayForces = new ConcurrentLinkedQueue<>();
 
             this.hasSplitSpeedBoost = hasSplitSpeedBoost;
             this.splitBoostVelocity = playerSplitVelocity;
@@ -121,23 +128,26 @@ public class Player {
                 return;
             }
 
-            ax = maxVx < 0
+            double axTrue = maxVx < 0
                 ? -Math.abs(ax)
                 : Math.abs(ax);
-            ay = maxVy < 0
+            double ayTrue = maxVy < 0
                 ? -Math.abs(ay)
                 : Math.abs(ay);
 
             vx = (
                 Math.abs(vx) < Math.abs(maxVx)
-                    ? vx + ax
+                    ? vx + axTrue
                     : maxVx
             );
             vy = (
                 Math.abs(vy) < Math.abs(maxVy)
-                    ? vy + ay
+                    ? vy + ayTrue
                     : maxVy
             );
+
+            vx += axForces.stream().reduce(0.0, Double::sum);
+            vy += ayForces.stream().reduce(0.0, Double::sum);
 
             if (hasSplitSpeedBoost) {
                 splitBoostVelocity -= playerSplitDecay;
@@ -157,6 +167,9 @@ public class Player {
 
             x += vx * velScale;
             y += vy * velScale;
+
+            axForces.clear();
+            ayForces.clear();
         }
 
         public void tickDelay(long time) {
@@ -173,6 +186,8 @@ public class Player {
         public JSONObject toJSON() {
             JSONObject parent = super.toJSON();
 
+            parent.put("ax_forces", axForces);
+            parent.put("ay_forces", ayForces);
             parent.put("parent_uuid", parentUUID);
             parent.put("max_vx", maxVx);
             parent.put("max_vy", maxVy);
@@ -338,14 +353,12 @@ public class Player {
 
                             checkBlob.removeFromMap();
                         }
-                    } else if (
-                        checkTouch(playerBlob, checkBlob) &&
-                        checkBlob.mass <= playerBlob.mass
-                    ) {
-                        double[] pos = repositionBlob(playerBlob, checkBlob);
+                    } else if (checkTouch(playerBlob, checkBlob) || checkCollision(playerBlob, checkBlob)) {
+                        double collisionTheta = blobTheta(playerBlob, checkBlob);
+                        double collisionDelta = overlapDelta(playerBlob, checkBlob);
 
-                        checkBlob.setX(pos[0]);
-                        checkBlob.setY(pos[1]);
+                        checkBlob.axForces.add(collisionDelta * Math.cos(collisionTheta));
+                        checkBlob.ayForces.add(collisionDelta * Math.sin(collisionTheta));
                     }
                 }
             }
