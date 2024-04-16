@@ -10,6 +10,7 @@ import ceccs.network.PlayerSocket;
 import ceccs.network.data.IdentifyPacket;
 import ceccs.network.data.KeyPacket;
 import ceccs.network.data.MousePacket;
+import ceccs.network.utils.CustomID;
 import ceccs.utils.InternalException;
 import javafx.scene.paint.Paint;
 import org.json.JSONArray;
@@ -19,7 +20,6 @@ import java.awt.event.KeyEvent;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
@@ -53,7 +53,7 @@ public class Player {
 
     protected static class PlayerBlob extends Blob {
 
-        final public UUID parentUUID;
+        final public CustomID parentUUID;
 
         protected double maxVx;
         protected double maxVy;
@@ -72,7 +72,7 @@ public class Player {
 
         protected long lastDecayTick;
 
-        public PlayerBlob(double x, double y, double vx, double vy, double ax, double ay, double mass, boolean hasSplitSpeedBoost, Paint fill, UUID parentUUID, UUID uuid, AbstractMap<UUID, PlayerBlob> parentMap) {
+        public PlayerBlob(double x, double y, double vx, double vy, double ax, double ay, double mass, boolean hasSplitSpeedBoost, Paint fill, CustomID parentUUID, CustomID uuid, AbstractMap<CustomID, PlayerBlob> parentMap) {
             super(x, y, vx, vy, ax, ay, mass, fill, uuid, parentMap);
 
             this.maxVx = 0;
@@ -94,11 +94,11 @@ public class Player {
             this.lastDecayTick = 0;
         }
 
-        public PlayerBlob(double x, double y, double vx, double vy, double mass, Paint fill, UUID parentUUID, UUID uuid, AbstractMap<UUID, PlayerBlob> parentMap) {
+        public PlayerBlob(double x, double y, double vx, double vy, double mass, Paint fill, CustomID parentUUID, CustomID uuid, AbstractMap<CustomID, PlayerBlob> parentMap) {
             this(x, y, vx, vy, playerMouseAcc, playerMouseAcc, mass, false, fill, parentUUID, uuid, parentMap);
         }
 
-        public PlayerBlob(double x, double y, double mass, boolean hasSplitSpeedBoost, Paint fill, UUID parentUUID, UUID uuid, AbstractMap<UUID, PlayerBlob> parentMap) {
+        public PlayerBlob(double x, double y, double mass, boolean hasSplitSpeedBoost, Paint fill, CustomID parentUUID, CustomID uuid, AbstractMap<CustomID, PlayerBlob> parentMap) {
             this(x, y, 0, 0, playerMouseAcc, playerMouseAcc, mass, hasSplitSpeedBoost, fill, parentUUID, uuid, parentMap);
         }
 
@@ -212,10 +212,10 @@ public class Player {
         }
     }
 
-    final public UUID uuid;
+    final public CustomID uuid;
     final public IdentifyPacket identifyPacket;
 
-    final protected ConcurrentHashMap<UUID, PlayerBlob> playerBlobs;
+    final protected ConcurrentHashMap<CustomID, PlayerBlob> playerBlobs;
 
     protected MousePacket mouseEvent;
     final protected ConcurrentHashMap<Integer, Boolean> keyEvents;
@@ -226,10 +226,10 @@ public class Player {
 
     final private PlayerSocket playerSocket;
 
-    public Player(double x, double y, double vx, double vy, double mass, Paint fill, UUID uuid, IdentifyPacket identifyPacket, Game game, PlayerSocket playerSocket) {
+    public Player(double x, double y, double vx, double vy, double mass, Paint fill, CustomID uuid, IdentifyPacket identifyPacket, Game game, PlayerSocket playerSocket) {
         this.playerBlobs = new ConcurrentHashMap<>();
 
-        UUID childUUID = UUID.randomUUID();
+        CustomID childUUID = CustomID.randomID();
 
         this.playerBlobs.put(childUUID, new PlayerBlob(x, y, vx, vy, mass, fill, uuid, childUUID, this.playerBlobs));
 
@@ -246,7 +246,7 @@ public class Player {
         this.playerSocket = playerSocket;
     }
 
-    public Player(UUID uuid, IdentifyPacket identifyPacket, Game game, PlayerSocket playerSocket) {
+    public Player(CustomID uuid, IdentifyPacket identifyPacket, Game game, PlayerSocket playerSocket) {
         this(
             Utilities.random.nextDouble(PhysicsMap.width),
             Utilities.random.nextDouble(PhysicsMap.height),
@@ -321,19 +321,22 @@ public class Player {
     public void collisionTick(long time) {
         if (getMass() <= 0) {
             playerSocket.setTerminate();
+
+            return;
         }
 
-        ArrayList<Blob> allBlobs = ConsolidateBlobs.convert(
-                game.viruses, game.foods, game.pellets
-        );
+        ArrayList<Blob> allBlobs = new ArrayList<>(ConsolidateBlobs.convert(
+            getCamera(), game.viruses, game.foods, game.pellets
+        ));
 
         for (int i = playerBlobs.size() - 1; i >= 0; --i) {
-            ArrayList<UUID> uuidList = new ArrayList<>(playerBlobs.keySet());
+            ArrayList<CustomID> uuidList = new ArrayList<>(playerBlobs.keySet());
 
             PlayerBlob playerBlob = playerBlobs.get(uuidList.get(i));
 
             ArrayList<Blob> collideBlobs = allBlobs
                 .stream()
+                .parallel()
                 .filter(blob -> Utilities.checkCollision(blob, playerBlob))
                 .collect(Collectors.toCollection(ArrayList::new));
 
@@ -392,7 +395,15 @@ public class Player {
                 }
             }
 
-            ArrayList<UUID> enemyUUIDs = new ArrayList<>(game.players.keySet());
+            ArrayList<CustomID> enemyUUIDs = new ArrayList<>(
+                game.players
+                    .values()
+                    .stream()
+                    .parallel()
+                    .filter(player -> player.visibilityCulling(getCamera()))
+                    .map(player -> player.uuid)
+                    .toList()
+            );
 
             for (int j = enemyUUIDs.size() - 1; j >= 0; --j) {
                 Player enemy = game.players.get(enemyUUIDs.get(j));
@@ -401,7 +412,7 @@ public class Player {
                     continue;
                 }
 
-                ArrayList<UUID> enemyPlayerBlobs = new ArrayList<>(enemy.playerBlobs.keySet());
+                ArrayList<CustomID> enemyPlayerBlobs = new ArrayList<>(enemy.playerBlobs.keySet());
 
                 for (int k = enemyPlayerBlobs.size() - 1; k >= 0; --k) {
                     PlayerBlob enemyBlob = enemy.playerBlobs.get(enemyPlayerBlobs.get(k));
@@ -440,7 +451,7 @@ public class Player {
             spikedBlob.mass = spikedSplitSize;
         }
 
-        ArrayList<UUID> uuidList = new ArrayList<>(
+        ArrayList<CustomID> uuidList = new ArrayList<>(
             playerBlobs.values()
                 .stream()
                 .sorted((blob1, blob2) -> (int) (blob2.mass - blob1.mass))
@@ -492,7 +503,7 @@ public class Player {
                 }
             }
 
-            UUID childUUID = UUID.randomUUID();
+            CustomID childUUID = CustomID.randomID();
 
             PlayerBlob newBlob = new PlayerBlob(pos[0], pos[1], splitSize, true, playerBlob.fill, uuid, childUUID, playerBlobs);
             playerBlobs.put(childUUID, newBlob);
@@ -525,7 +536,7 @@ public class Player {
 
             double[] pos = repositionBlob(playerBlob, pelletRadius, theta);
 
-            UUID pelletUUID = UUID.randomUUID();
+            CustomID pelletUUID = CustomID.randomID();
             game.pellets.put(pelletUUID, new Pellet(pos[0], pos[1], theta, pelletMass, playerBlob.fill, game, pelletUUID));
 
             playerBlob.cooldowns.pellet = time;
@@ -560,8 +571,8 @@ public class Player {
         }
     }
 
-    public boolean visibilityCulling() {
-        return playerBlobs.values().stream().anyMatch(playerBlob -> playerBlob.visibilityCulling(getCamera()));
+    public boolean visibilityCulling(Camera camera) {
+        return playerBlobs.values().stream().anyMatch(playerBlob -> playerBlob.visibilityCulling(camera));
     }
 
     public JSONObject toJSON() {
