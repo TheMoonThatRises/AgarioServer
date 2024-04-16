@@ -15,11 +15,11 @@ public class ConsolidateBlobs {
 
         for (AbstractMap<CustomID, ? extends Blob> blobBlob : blobs) {
             output.addAll(
-                blobBlob.values()
-                    .stream()
-                    .parallel()
-                    .filter(blob -> blob.visibilityCulling(camera))
-                    .toList()
+                    blobBlob.values()
+                            .stream()
+                            .parallel()
+                            .filter(blob -> blob.visibilityCulling(camera))
+                            .toList()
             );
         }
 

@@ -23,19 +23,16 @@ import static ceccs.game.configs.VirusConfigs.maxVirusCount;
 
 public class Game {
 
-    private long lastTps;
-    private long tps;
-
     final public ConcurrentHashMap<CustomID, Player> players;
     final public ConcurrentHashMap<CustomID, Food> foods;
     final public ConcurrentHashMap<CustomID, Pellet> pellets;
     final public ConcurrentHashMap<CustomID, Virus> viruses;
-
     final private ArrayList<Pair<PlayerSocket, IdentifyPacket>> spawnQueue;
     final private ArrayList<CustomID> despawnQueue;
-
     final private TimerTask heartbeatTask;
     final private Timer heartbeat;
+    private long lastTps;
+    private long tps;
 
     public Game() {
         this.players = new ConcurrentHashMap<>();
@@ -146,16 +143,16 @@ public class Game {
 
         JSONObject gameData = new JSONObject();
         gameData.put("foods", foods.values().stream().parallel().filter(food ->
-            food.visibilityCulling(camera)
+                food.visibilityCulling(camera)
         ).map(Food::toJSON).toList());
         gameData.put("pellets", pellets.values().stream().parallel().filter(pellets ->
-            pellets.visibilityCulling(camera)
+                pellets.visibilityCulling(camera)
         ).map(Pellet::toJSON).toList());
         gameData.put("viruses", viruses.values().stream().parallel().filter(virus ->
-            virus.visibilityCulling(camera)
+                virus.visibilityCulling(camera)
         ).map(Virus::toJSON).toList());
         gameData.put("players", players.values().stream().parallel().filter(player ->
-            player.visibilityCulling(camera)
+                player.visibilityCulling(camera)
         ).map(Player::toJSON).toList());
 
         return gameData;

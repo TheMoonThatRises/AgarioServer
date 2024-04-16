@@ -5,13 +5,11 @@ import ceccs.utils.InternalException;
 
 public class Camera {
 
+    final protected double scale;
     final private double screenWidth;
     final private double screenHeight;
-
     final private double x;
     final private double y;
-
-    final protected double scale;
 
     public Camera(Player player) throws InternalException {
         this.screenWidth = player.identifyPacket.screenWidth();

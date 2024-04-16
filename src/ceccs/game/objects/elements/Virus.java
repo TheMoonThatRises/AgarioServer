@@ -17,17 +17,15 @@ import static ceccs.game.utils.Utilities.repositionBlob;
 public class Virus extends Blob {
 
     final private double projected;
-    private int time;
-
-    private boolean didFinish;
-
     protected Game game;
+    private int time;
+    private boolean didFinish;
 
     public Virus(Game game, CustomID uuid) {
         super(
-            Utilities.random.nextDouble(PhysicsMap.width),
-            Utilities.random.nextDouble(PhysicsMap.height),
-            virusMass, Color.GREEN, uuid, game.viruses
+                Utilities.random.nextDouble(PhysicsMap.width),
+                Utilities.random.nextDouble(PhysicsMap.height),
+                virusMass, Color.GREEN, uuid, game.viruses
         );
 
         this.didFinish = true;
@@ -39,7 +37,7 @@ public class Virus extends Blob {
 
     public Virus(double x, double y, double theta, double mass, Game game, CustomID uuid) {
         super(
-            x, y, mass, Color.GREEN, uuid, game.viruses
+                x, y, mass, Color.GREEN, uuid, game.viruses
         );
 
         this.projected = virusVelocity / virusFriction;
@@ -80,9 +78,9 @@ public class Virus extends Blob {
         super.collisionTick();
 
         ArrayList<Pellet> pellets = game.pellets.values()
-            .stream()
-            .filter(blob -> Utilities.checkCollision(blob, this))
-            .collect(Collectors.toCollection(ArrayList::new));
+                .stream()
+                .filter(blob -> Utilities.checkCollision(blob, this))
+                .collect(Collectors.toCollection(ArrayList::new));
 
         for (int i = pellets.size() - 1; i >= 0; --i) {
             Pellet pellet = pellets.get(i);
@@ -103,8 +101,8 @@ public class Virus extends Blob {
 
     private void split(Pellet criticalPellet) {
         double theta = Math.atan2(
-            criticalPellet.vy,
-            criticalPellet.vx
+                criticalPellet.vy,
+                criticalPellet.vx
         );
 
         mass /= 2;

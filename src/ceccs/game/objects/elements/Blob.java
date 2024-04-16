@@ -88,12 +88,12 @@ public class Blob {
         return x;
     }
 
-    public double getY() {
-        return y;
-    }
-
     public void setX(double x) {
         this.x = x;
+    }
+
+    public double getY() {
+        return y;
     }
 
     public void setY(double y) {
@@ -111,21 +111,21 @@ public class Blob {
 
         boolean defaultVisibility = !(
                 relX + relRadius < -10 ||
-                relX - relRadius > camera.getScreenWidth() + 10 ||
-                relY + relRadius < -10 ||
-                relY - relRadius > camera.getScreenHeight() + 10 ||
-                relRadius < 0.5
+                        relX - relRadius > camera.getScreenWidth() + 10 ||
+                        relY + relRadius < -10 ||
+                        relY - relRadius > camera.getScreenHeight() + 10 ||
+                        relRadius < 0.5
         );
 
         return camera.getScale() < 3 && defaultVisibility && mass < 100
-            ? Utilities.random.nextDouble() > 0.6
-            : defaultVisibility;
+                ? Utilities.random.nextDouble() > 0.6
+                : defaultVisibility;
     }
 
     public JSONObject toJSON() {
         return new JSONObject(String.format(
-            "{\"uuid\":\"%s\",\"x\":%f,\"y\":%f,\"vx\":%f,\"vy\":%f,\"ax\":%f,\"ay\":%f,\"mass\":%f,\"fill\":\"%s\"}",
-            uuid, x, y, vx, vy, ax, ay, mass, fill.toString()
+                "{\"uuid\":\"%s\",\"x\":%f,\"y\":%f,\"vx\":%f,\"vy\":%f,\"ax\":%f,\"ay\":%f,\"mass\":%f,\"fill\":\"%s\"}",
+                uuid, x, y, vx, vy, ax, ay, mass, fill.toString()
         ));
     }
 

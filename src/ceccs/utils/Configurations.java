@@ -10,9 +10,6 @@ public class Configurations {
 
     final public static Configurations shared;
 
-    final private InternalPathFinder fileHandler;
-    final private Properties properties;
-
     static {
         try {
             shared = new Configurations();
@@ -22,6 +19,9 @@ public class Configurations {
             throw new RuntimeException(exception);
         }
     }
+
+    final private InternalPathFinder fileHandler;
+    final private Properties properties;
 
     private Configurations() throws IOException {
         this.fileHandler = new InternalPathFinder("configs.properties", false);

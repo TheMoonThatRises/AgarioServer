@@ -68,16 +68,16 @@ public class NetworkHandler {
                     boolean didTimeout = playerSocket.getLastPing() + timeout < System.nanoTime();
 
                     if (
-                        playerSocket.isShouldTerminate() ||
-                        didTimeout
+                            playerSocket.isShouldTerminate() ||
+                                    didTimeout
                     ) {
                         game.despawnPlayer(playerSocket.getID());
                         playerSockets.remove(playerSocket.getID());
 
                         if (didTimeout) {
                             System.out.printf(
-                                "player with uuid %s and address %s:%d timed out\n",
-                                playerSocket.getID(), playerSocket.getAddress(), playerSocket.getPort()
+                                    "player with uuid %s and address %s:%d timed out\n",
+                                    playerSocket.getID(), playerSocket.getAddress(), playerSocket.getPort()
                             );
                         }
 
@@ -124,24 +124,29 @@ public class NetworkHandler {
                         game.spawnPlayer(playerSocket, IdentifyPacket.fromJSON(packetData));
 
                         System.out.printf(
-                            "player with uuid %s and address %s:%d requested to connect\n",
-                            playerUUID, incomingAddress, port
+                                "player with uuid %s and address %s:%d requested to connect\n",
+                                playerUUID, incomingAddress, port
                         );
 
                         handleWritePacket(
-                            playerSockets.get(playerUUID),
-                            OP_CODES.SERVER_IDENTIFY_OK,
-                            new RegisterPacket(PhysicsMap.width, PhysicsMap.height, Server.maxFramerate, playerUUID).toJSON()
+                                playerSockets.get(playerUUID),
+                                OP_CODES.SERVER_IDENTIFY_OK,
+                                new RegisterPacket(
+                                        PhysicsMap.width,
+                                        PhysicsMap.height,
+                                        Server.maxFramerate,
+                                        playerUUID
+                                ).toJSON()
                         );
                     }
                     case CLIENT_PING -> {
                         playerSockets.get(playerUUID).updateLastPing();
 
                         handleWritePacket(
-                            playerSockets.get(playerUUID),
-                            OP_CODES.SERVER_PONG,
-                            new JSONObject()
-                                .put("tps", game.getTps() / 1_000_000.0)
+                                playerSockets.get(playerUUID),
+                                OP_CODES.SERVER_PONG,
+                                new JSONObject()
+                                        .put("tps", game.getTps() / 1_000_000.0)
                         );
                     }
                     case CLIENT_MOUSE_UPDATE -> game.updatePlayerMouse(playerUUID, MousePacket.fromJSON(packetData));
@@ -150,8 +155,8 @@ public class NetworkHandler {
                         playerSockets.get(playerUUID).setTerminate();
 
                         System.out.printf(
-                            "player with uuid %s and address %s:%d requested to terminate\n",
-                            playerUUID, incomingAddress, port
+                                "player with uuid %s and address %s:%d requested to terminate\n",
+                                playerUUID, incomingAddress, port
                         );
                     }
                     default -> System.out.println("unhandled op code: " + op);

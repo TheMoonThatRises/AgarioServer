@@ -17,14 +17,6 @@ public class CustomID implements Serializable, Comparable<CustomID> {
         return new CustomID(generateRandomID());
     }
 
-    public String getID() {
-        return id;
-    }
-
-    public String toString() {
-        return id;
-    }
-
     public static CustomID fromString(String id) {
         return new CustomID(id);
     }
@@ -50,6 +42,14 @@ public class CustomID implements Serializable, Comparable<CustomID> {
         }
 
         return str.toString();
+    }
+
+    public String getID() {
+        return id;
+    }
+
+    public String toString() {
+        return id;
     }
 
     @Override

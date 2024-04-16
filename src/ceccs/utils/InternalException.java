@@ -11,13 +11,13 @@ public class InternalException extends Exception {
 
         if (Double.isInfinite(value)) {
             throw new InternalException(String.format(
-                "division does not produce finite number: %f / %f\n",
-                numerator, denominator
+                    "division does not produce finite number: %f / %f\n",
+                    numerator, denominator
             ));
         } else if (Double.isNaN(value)) {
             throw new InternalException(String.format(
-                "division produces NaN: %f / %f\n",
-                numerator, denominator
+                    "division produces NaN: %f / %f\n",
+                    numerator, denominator
             ));
         }
 

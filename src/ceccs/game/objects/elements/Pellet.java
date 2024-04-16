@@ -17,10 +17,10 @@ public class Pellet extends Blob {
 
     public Pellet(double x, double y, double theta, double mass, Paint fill, Game game, CustomID uuid) {
         super(
-            x, y, 0, 0,
-            -pelletFriction * Math.cos(theta),
-            -pelletFriction * Math.sin(theta),
-            mass, fill, uuid, game.pellets
+                x, y, 0, 0,
+                -pelletFriction * Math.cos(theta),
+                -pelletFriction * Math.sin(theta),
+                mass, fill, uuid, game.pellets
         );
 
         this.projected = pelletVelocity / pelletFriction;

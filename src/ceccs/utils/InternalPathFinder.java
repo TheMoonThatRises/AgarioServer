@@ -7,13 +7,14 @@ import java.nio.file.Paths;
 public class InternalPathFinder {
 
     final private static Path baseDirectory;
-    final private Path path;
 
     static {
         baseDirectory = Paths.get(System.getProperty("user.home"), ".ceccs_agario", "server");
 
         baseDirectory.toFile().mkdirs();
     }
+
+    final private Path path;
 
     public InternalPathFinder(String fileName, boolean overwrite) throws IOException {
         this.path = Paths.get(baseDirectory.toString(), fileName);

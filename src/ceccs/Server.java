@@ -48,7 +48,7 @@ public class Server {
 
         System.out.print("load previous server config? ([y]/n): ");
 
-        if (!scanner.nextLine().toLowerCase().contains("n") ) {
+        if (!scanner.nextLine().toLowerCase().contains("n")) {
             serverIp = configs.getProperty("server.ip");
             serverPort = Integer.parseInt(configs.getProperty("server.port"));
 

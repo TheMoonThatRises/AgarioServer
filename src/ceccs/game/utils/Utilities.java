@@ -7,11 +7,9 @@ import java.util.Random;
 
 public class Utilities {
 
-    final private static boolean randomise = false;
-
-    final private static long seed = 3249871132234509L;
-
     final public static Random random = new Random();
+    final private static boolean randomise = false;
+    final private static long seed = 3249871132234509L;
 
     static {
         if (!randomise) {
@@ -21,10 +19,10 @@ public class Utilities {
 
     public static Color randomColor() {
         return new Color(
-            random.nextDouble() / 2 + 0.5,
-            random.nextDouble() / 2 + 0.5,
-            random.nextDouble() / 2 + 0.5,
-            1
+                random.nextDouble() / 2 + 0.5,
+                random.nextDouble() / 2 + 0.5,
+                random.nextDouble() / 2 + 0.5,
+                1
         );
     }
 
@@ -35,7 +33,7 @@ public class Utilities {
         double rDiff = blob2.getPhysicsRadius() - blob1.getPhysicsRadius();
         double rSum = blob2.getPhysicsRadius() + blob1.getPhysicsRadius();
 
-        return new double[] {dst, rDiff, rSum};
+        return new double[]{dst, rDiff, rSum};
     }
 
     public static boolean checkCollision(Blob blob1, Blob blob2) {
@@ -66,7 +64,7 @@ public class Utilities {
         double xPos = blob.getX() + collisionRadius * Math.cos(theta);
         double yPos = blob.getY() + collisionRadius * Math.sin(theta);
 
-        return new double[] {xPos, yPos};
+        return new double[]{xPos, yPos};
     }
 
     public static double[] repositionBlob(Blob blob1, Blob blob2) {
@@ -81,7 +79,7 @@ public class Utilities {
         int idx = 0;
         for (int c = 1; c < arr.length; c++) {
             double cdistance = Math.abs(arr[c] - value);
-            if(cdistance < distance){
+            if (cdistance < distance) {
                 idx = c;
                 distance = cdistance;
             }
