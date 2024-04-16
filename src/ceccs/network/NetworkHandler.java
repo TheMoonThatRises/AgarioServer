@@ -146,7 +146,7 @@ public class NetworkHandler {
                                 playerSockets.get(playerUUID),
                                 OP_CODES.SERVER_PONG,
                                 new JSONObject()
-                                        .put("tps", game.getTps() / 1_000_000.0)
+                                        .put("tps", game.getTps())
                         );
                     }
                     case CLIENT_MOUSE_UPDATE -> game.updatePlayerMouse(playerUUID, MousePacket.fromJSON(packetData));

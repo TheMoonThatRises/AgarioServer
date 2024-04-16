@@ -157,8 +157,8 @@ public class Game {
         return gameData;
     }
 
-    public long getTps() {
-        return tps;
+    public double getTps() {
+        return 1_000.0 / (tps / 1_000_000.0);
     }
 
 }
