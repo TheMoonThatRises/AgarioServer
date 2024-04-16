@@ -123,10 +123,16 @@ public class Blob {
     }
 
     public JSONObject toJSON() {
-        return new JSONObject(String.format(
-                "{\"uuid\":\"%s\",\"x\":%f,\"y\":%f,\"vx\":%f,\"vy\":%f,\"ax\":%f,\"ay\":%f,\"mass\":%f,\"fill\":\"%s\"}",
-                uuid, x, y, vx, vy, ax, ay, mass, fill.toString()
-        ));
+        return new JSONObject()
+                .put("uuid", uuid.toString())
+                .put("x", x)
+                .put("y", y)
+                .put("vx", vx)
+                .put("vy", vy)
+                .put("ax", ax)
+                .put("ay", ay)
+                .put("mass", mass)
+                .put("fill", fill.toString());
     }
 
 }

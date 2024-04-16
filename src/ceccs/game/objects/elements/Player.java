@@ -393,12 +393,10 @@ public class Player {
     public JSONObject toJSON() {
         JSONArray blobArray = new JSONArray(playerBlobs.values().stream().map(PlayerBlob::toJSON).toList());
 
-        return new JSONObject(String.format(
-                "{\"uuid\":\"%s\",\"username\":\"%s\",\"player_blobs\":%s}",
-                uuid,
-                identifyPacket.username(),
-                blobArray
-        ));
+        return new JSONObject()
+                .put("uuid", uuid.toString())
+                .put("username", identifyPacket.username())
+                .put("player_blobs", blobArray);
     }
 
     protected static class Cooldowns {
@@ -413,10 +411,10 @@ public class Player {
         }
 
         public JSONObject toJSON() {
-            return new JSONObject(String.format(
-                    "{\"pellet\":%d,\"split\":%d,\"merge\":%d}",
-                    pellet, split, merge
-            ));
+            return new JSONObject()
+                    .put("pellet", pellet)
+                    .put("split", split)
+                    .put("merge", merge);
         }
     }
 

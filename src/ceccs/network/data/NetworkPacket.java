@@ -29,7 +29,9 @@ public record NetworkPacket(int op, JSONObject data) {
     }
 
     public JSONObject toJSON() {
-        return new JSONObject(String.format("{\"op\":%d,\"data\":%s}", op, data.toString()));
+        return new JSONObject()
+                .put("op", op)
+                .put("data", data);
     }
 
 }
