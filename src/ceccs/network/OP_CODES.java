@@ -25,14 +25,14 @@ public enum OP_CODES {
         this.opcode = opcode;
     }
 
-    public int getValue() {
-        return opcode;
-    }
-
     public static Optional<OP_CODES> fromValue(int value) {
         return Arrays.stream(values())
-            .filter(opcode -> opcode.opcode == value)
-            .findFirst();
+                .filter(opcode -> opcode.opcode == value)
+                .findFirst();
+    }
+
+    public int getValue() {
+        return opcode;
     }
 
 }
