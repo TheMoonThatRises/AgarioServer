@@ -3,10 +3,7 @@ package ceccs.network.data;
 import ceccs.network.OP_CODES;
 import org.json.JSONObject;
 
-public class NetworkPacket {
-
-    final public int op;
-    final public JSONObject data;
+public record NetworkPacket(int op, JSONObject data) {
 
     public NetworkPacket(int op, JSONObject data) {
         this.op = op;

@@ -107,7 +107,8 @@ public class NetworkHandler {
             String received = new String(packet.getData());
             NetworkPacket networkPacket = NetworkPacket.fromString(received);
 
-            Optional<OP_CODES> opcode = OP_CODES.fromValue(networkPacket.op);
+            Optional<OP_CODES> opcode = OP_CODES.fromValue(networkPacket.op());
+            JSONObject packetData = networkPacket.data();
 
             opcode.ifPresentOrElse(op -> {
                 if (op != OP_CODES.CLIENT_IDENTIFY && !playerSockets.containsKey(playerUUID)) {
@@ -120,7 +121,7 @@ public class NetworkHandler {
                     case CLIENT_IDENTIFY -> {
                         PlayerSocket playerSocket = new PlayerSocket(incomingAddress, port);
                         playerSockets.put(playerUUID, playerSocket);
-                        game.spawnPlayer(playerSocket, IdentifyPacket.fromJSON(networkPacket.data));
+                        game.spawnPlayer(playerSocket, IdentifyPacket.fromJSON(packetData));
 
                         System.out.printf(
                             "player with uuid %s and address %s:%d requested to connect\n",
@@ -143,8 +144,8 @@ public class NetworkHandler {
                                 .put("tps", game.getTps() / 1_000_000.0)
                         );
                     }
-                    case CLIENT_MOUSE_UPDATE -> game.updatePlayerMouse(playerUUID, MousePacket.fromJSON(networkPacket.data));
-                    case CLIENT_KEYBOARD_UPDATE -> game.updatePlayerKey(playerUUID, KeyPacket.fromJSON(networkPacket.data));
+                    case CLIENT_MOUSE_UPDATE -> game.updatePlayerMouse(playerUUID, MousePacket.fromJSON(packetData));
+                    case CLIENT_KEYBOARD_UPDATE -> game.updatePlayerKey(playerUUID, KeyPacket.fromJSON(packetData));
                     case CLIENT_TERMINATE -> {
                         playerSockets.get(playerUUID).setTerminate();
 
