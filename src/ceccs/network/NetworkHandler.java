@@ -191,7 +191,7 @@ public class NetworkHandler {
 
     public void start() {
         socketListener.start();
-        socketWriterTimer.scheduleAtFixedRate(socketWriter, 0, 10);
+        socketWriterTimer.scheduleAtFixedRate(socketWriter, 0, 15);
     }
 
     public void stop() {
