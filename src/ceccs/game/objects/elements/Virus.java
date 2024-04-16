@@ -4,10 +4,10 @@ import ceccs.game.Game;
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.utils.PhysicsMap;
 import ceccs.game.utils.Utilities;
+import ceccs.network.utils.CustomID;
 import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static ceccs.game.configs.VirusConfigs.*;
@@ -23,7 +23,7 @@ public class Virus extends Blob {
 
     protected Game game;
 
-    public Virus(Game game, UUID uuid) {
+    public Virus(Game game, CustomID uuid) {
         super(
             Utilities.random.nextDouble(PhysicsMap.width),
             Utilities.random.nextDouble(PhysicsMap.height),
@@ -37,7 +37,7 @@ public class Virus extends Blob {
         this.game = game;
     }
 
-    public Virus(double x, double y, double theta, double mass, Game game, UUID uuid) {
+    public Virus(double x, double y, double theta, double mass, Game game, CustomID uuid) {
         super(
             x, y, mass, Color.GREEN, uuid, game.viruses
         );
@@ -111,7 +111,7 @@ public class Virus extends Blob {
 
         double[] pos = repositionBlob(this, getPhysicsRadius(), theta);
 
-        UUID splitUUID = UUID.randomUUID();
+        CustomID splitUUID = CustomID.randomID();
         game.viruses.put(splitUUID, new Virus(pos[0], pos[1], theta, mass, game, splitUUID));
     }
 

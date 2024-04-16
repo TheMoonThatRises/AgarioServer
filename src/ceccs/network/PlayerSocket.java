@@ -1,14 +1,15 @@
 package ceccs.network;
 
+import ceccs.network.utils.CustomID;
+
 import java.net.InetAddress;
-import java.util.UUID;
 
 public class PlayerSocket {
 
     final private InetAddress address;
     final private int port;
 
-    final private UUID uuid;
+    final private CustomID uuid;
 
     private boolean shouldTerminate;
 
@@ -19,13 +20,13 @@ public class PlayerSocket {
         this.port = port;
         this.shouldTerminate = false;
 
-        this.uuid = PlayerSocket.toUUID(address, port);
+        this.uuid = PlayerSocket.toID(address, port);
 
         this.lastPing = System.nanoTime();
     }
 
-    public static UUID toUUID(InetAddress address, int port) {
-        return UUID.nameUUIDFromBytes((address.getHostAddress() + ":" + port).getBytes());
+    public static CustomID toID(InetAddress address, int port) {
+        return CustomID.IDFromBytes((address.getHostAddress() + ":" + port).getBytes());
     }
 
     public InetAddress getAddress() {
@@ -36,7 +37,7 @@ public class PlayerSocket {
         return port;
     }
 
-    public UUID getUUID() {
+    public CustomID getID() {
         return uuid;
     }
 

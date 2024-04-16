@@ -2,9 +2,8 @@ package ceccs.game.objects.elements;
 
 import ceccs.game.Game;
 import ceccs.game.objects.BLOB_TYPES;
+import ceccs.network.utils.CustomID;
 import javafx.scene.paint.Paint;
-
-import java.util.UUID;
 
 import static ceccs.game.configs.PelletConfigs.pelletFriction;
 import static ceccs.game.configs.PelletConfigs.pelletVelocity;
@@ -16,7 +15,7 @@ public class Pellet extends Blob {
 
     private boolean didFinish;
 
-    public Pellet(double x, double y, double theta, double mass, Paint fill, Game game, UUID uuid) {
+    public Pellet(double x, double y, double theta, double mass, Paint fill, Game game, CustomID uuid) {
         super(
             x, y, 0, 0,
             -pelletFriction * Math.cos(theta),

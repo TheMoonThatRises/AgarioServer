@@ -4,7 +4,7 @@ import ceccs.Server;
 import ceccs.game.Game;
 import ceccs.game.utils.PhysicsMap;
 import ceccs.network.data.*;
-import ceccs.network.utils.GZip;
+import ceccs.network.utils.CustomID;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -13,14 +13,17 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Optional;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class NetworkHandler {
 
-    final private static long timeout = 10_000_000_000L;
+    final private static long timeout = 5_000_000_000L;
 
-    final public ConcurrentHashMap<UUID, PlayerSocket> playerSockets;
+    final public ConcurrentHashMap<CustomID, PlayerSocket> playerSockets;
     final private DatagramSocket serverSocket;
 
     final private Thread socketListener;
@@ -68,13 +71,13 @@ public class NetworkHandler {
                         playerSocket.isShouldTerminate() ||
                         didTimeout
                     ) {
-                        game.despawnPlayer(playerSocket.getUUID());
-                        playerSockets.remove(playerSocket.getUUID());
+                        game.despawnPlayer(playerSocket.getID());
+                        playerSockets.remove(playerSocket.getID());
 
                         if (didTimeout) {
                             System.out.printf(
                                 "player with uuid %s and address %s:%d timed out\n",
-                                playerSocket.getUUID(), playerSocket.getAddress(), playerSocket.getPort()
+                                playerSocket.getID(), playerSocket.getAddress(), playerSocket.getPort()
                             );
                         }
 
@@ -83,9 +86,9 @@ public class NetworkHandler {
                         continue;
                     }
 
-                    if (game.players.containsKey(playerSocket.getUUID())) {
-                        JSONObject gameData = game.getGameState(playerSocket.getUUID());
-                        handleWritePacket(playerSocket, OP_CODES.SERVER_GAME_STATE, gameData);
+                    if (game.players.containsKey(playerSocket.getID())) {
+                        JSONObject gameData = game.getGameState(playerSocket.getID());
+                        new Thread(() -> handleWritePacket(playerSocket, OP_CODES.SERVER_GAME_STATE, gameData)).start();
                     }
                 }
             }
@@ -98,10 +101,10 @@ public class NetworkHandler {
         InetAddress incomingAddress = packet.getAddress();
         int port = packet.getPort();
 
-        UUID playerUUID = PlayerSocket.toUUID(incomingAddress, port);
+        CustomID playerUUID = PlayerSocket.toID(incomingAddress, port);
 
         try {
-            String received = new String(GZip.decompress(packet.getData()));
+            String received = new String(packet.getData());
             NetworkPacket networkPacket = NetworkPacket.fromString(received);
 
             Optional<OP_CODES> opcode = OP_CODES.fromValue(networkPacket.op);
@@ -135,7 +138,9 @@ public class NetworkHandler {
 
                         handleWritePacket(
                             playerSockets.get(playerUUID),
-                            OP_CODES.SERVER_PONG
+                            OP_CODES.SERVER_PONG,
+                            new JSONObject()
+                                .put("tps", game.getTps() / 1_000_000.0)
                         );
                     }
                     case CLIENT_MOUSE_UPDATE -> game.updatePlayerMouse(playerUUID, MousePacket.fromJSON(networkPacket.data));
@@ -161,32 +166,22 @@ public class NetworkHandler {
             exception.printStackTrace();
 
             System.err.println("failed to parse json: " + exception);
-        } catch (IOException exception) {
-            exception.printStackTrace();
-
-            System.err.println("failed to decompress packet: " + exception);
         }
     }
 
     private void handleWritePacket(PlayerSocket playerSocket, OP_CODES op, JSONObject data) {
         NetworkPacket networkPacket = new NetworkPacket(op, data);
 
+        byte[] byteData = networkPacket.toJSON().toString().getBytes();
+
+        DatagramPacket packet = new DatagramPacket(byteData, byteData.length, playerSocket.getAddress(), playerSocket.getPort());
+
         try {
-            byte[] byteData = GZip.compress(networkPacket.toJSON().toString().getBytes());
-
-            DatagramPacket packet = new DatagramPacket(byteData, byteData.length, playerSocket.getAddress(), playerSocket.getPort());
-
-            try {
-                serverSocket.send(packet);
-            } catch (IOException exception) {
-                exception.printStackTrace();
-
-                System.err.println("failed to send game packet");
-            }
+            serverSocket.send(packet);
         } catch (IOException exception) {
             exception.printStackTrace();
 
-            System.err.println("failed to compress packet");
+            System.err.println("failed to send game packet");
         }
     }
 

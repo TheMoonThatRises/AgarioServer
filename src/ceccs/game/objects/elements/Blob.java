@@ -4,15 +4,15 @@ import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.objects.Camera;
 import ceccs.game.utils.PhysicsMap;
 import ceccs.game.utils.Utilities;
+import ceccs.network.utils.CustomID;
 import javafx.scene.paint.Paint;
 import org.json.JSONObject;
 
 import java.util.AbstractMap;
-import java.util.UUID;
 
 public class Blob {
 
-    final public UUID uuid;
+    final public CustomID uuid;
 
     protected double x;
     protected double y;
@@ -25,9 +25,9 @@ public class Blob {
 
     protected Paint fill;
 
-    protected AbstractMap<UUID, ? extends Blob> parentMap;
+    protected AbstractMap<CustomID, ? extends Blob> parentMap;
 
-    public Blob(double x, double y, double vx, double vy, double ax, double ay, double mass, Paint fill, UUID uuid, AbstractMap<UUID, ? extends Blob> parentMap) {
+    public Blob(double x, double y, double vx, double vy, double ax, double ay, double mass, Paint fill, CustomID uuid, AbstractMap<CustomID, ? extends Blob> parentMap) {
         this.x = x;
         this.y = y;
         this.vx = vx;
@@ -44,7 +44,7 @@ public class Blob {
         this.fill = fill;
     }
 
-    public Blob(double x, double y, double mass, Paint fill, UUID uuid, AbstractMap<UUID, ? extends Blob> parentMap) {
+    public Blob(double x, double y, double mass, Paint fill, CustomID uuid, AbstractMap<CustomID, ? extends Blob> parentMap) {
         this(x, y, 0, 0, 0, 0, mass, fill, uuid, parentMap);
     }
 
