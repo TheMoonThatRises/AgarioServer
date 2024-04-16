@@ -149,6 +149,10 @@ public class Player {
 
             PlayerBlob playerBlob = playerBlobs.get(uuidList.get(i));
 
+            if (playerBlob == null) {
+                continue;
+            }
+
             ArrayList<Blob> collideBlobs = allBlobs
                     .stream()
                     .parallel()
@@ -161,23 +165,25 @@ public class Player {
             for (int j = playerBlobs.size() - 1; j >= 0; --j) {
                 PlayerBlob checkBlob = playerBlobs.get(uuidList.get(j));
 
-                if (playerBlob.uuid != checkBlob.uuid) {
-                    if (
-                            playerBlob.cooldowns.merge < time &&
-                                    checkBlob.cooldowns.merge < time
-                    ) {
-                        if (checkCollision(playerBlob, checkBlob) && j > i) {
-                            playerBlob.mass += checkBlob.mass;
+                if (checkBlob == null || playerBlob.uuid == checkBlob.uuid) {
+                    continue;
+                }
 
-                            checkBlob.removeFromMap();
-                        }
-                    } else if (checkTouch(playerBlob, checkBlob) || checkCollision(playerBlob, checkBlob)) {
-                        double collisionTheta = blobTheta(playerBlob, checkBlob);
-                        double collisionDelta = overlapDelta(playerBlob, checkBlob);
+                if (
+                        playerBlob.cooldowns.merge < time &&
+                                checkBlob.cooldowns.merge < time
+                ) {
+                    if (checkCollision(playerBlob, checkBlob) && j > i) {
+                        playerBlob.mass += checkBlob.mass;
 
-                        checkBlob.axForces.add(collisionDelta * Math.cos(collisionTheta));
-                        checkBlob.ayForces.add(collisionDelta * Math.sin(collisionTheta));
+                        checkBlob.removeFromMap();
                     }
+                } else if (checkTouch(playerBlob, checkBlob) || checkCollision(playerBlob, checkBlob)) {
+                    double collisionTheta = blobTheta(playerBlob, checkBlob);
+                    double collisionDelta = overlapDelta(playerBlob, checkBlob);
+
+                    checkBlob.axForces.add(collisionDelta * Math.cos(collisionTheta));
+                    checkBlob.ayForces.add(collisionDelta * Math.sin(collisionTheta));
                 }
             }
 
@@ -223,7 +229,7 @@ public class Player {
             for (int j = enemyUUIDs.size() - 1; j >= 0; --j) {
                 Player enemy = game.players.get(enemyUUIDs.get(j));
 
-                if (enemy.uuid == uuid) {
+                if (enemy == null || enemy.uuid == uuid) {
                     continue;
                 }
 
@@ -231,6 +237,10 @@ public class Player {
 
                 for (int k = enemyPlayerBlobs.size() - 1; k >= 0; --k) {
                     PlayerBlob enemyBlob = enemy.playerBlobs.get(enemyPlayerBlobs.get(k));
+
+                    if (enemyBlob == null) {
+                        continue;
+                    }
 
                     double rDiff = playerBlob.getPhysicsRadius() - enemyBlob.getPhysicsRadius();
 
