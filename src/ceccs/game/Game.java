@@ -70,16 +70,15 @@ public class Game {
                 }
 
                 // update physics
-                players.values().stream().parallel().forEach(Player::positionTick);
-                pellets.values().stream().parallel().forEach(Pellet::positionTick);
-                viruses.values().stream().parallel().forEach(Virus::positionTick);
+                players.values().forEach(Player::positionTick);
+                pellets.values().forEach(Pellet::positionTick);
+                viruses.values().forEach(Virus::positionTick);
 
-                players.forEach((id, player) -> player.collisionTick(System.nanoTime()));
-                viruses.forEach((id, virus) -> virus.collisionTick());
-                pellets.forEach((id, pellet) -> pellet.collisionTick());
-//                foods.forEach((id, food) -> food.collisionTick());
+                players.values().stream().parallel().forEach(player -> player.collisionTick(System.nanoTime()));
+                viruses.values().forEach(Virus::collisionTick);
+                pellets.values().forEach(Pellet::collisionTick);
 
-                players.values().stream().parallel().forEach(player -> player.keypressTicks(System.nanoTime()));
+                players.values().forEach(player -> player.keypressTicks(System.nanoTime()));
 
                 // load back items to env
                 if (foods.size() < maxFoodCount) {
