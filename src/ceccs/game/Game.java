@@ -11,9 +11,11 @@ import ceccs.network.data.KeyPacket;
 import ceccs.network.data.MousePacket;
 import ceccs.network.utils.CustomID;
 import javafx.util.Pair;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
@@ -140,21 +142,45 @@ public class Game {
     public JSONObject getGameState(CustomID playerUUID) {
         Camera camera = players.get(playerUUID).getCamera();
 
-        JSONObject gameData = new JSONObject();
-        gameData.put("foods", foods.values().stream().parallel().filter(food ->
-                food.visibilityCulling(camera)
-        ).map(Food::toJSON).toList());
-        gameData.put("pellets", pellets.values().stream().parallel().filter(pellets ->
-                pellets.visibilityCulling(camera)
-        ).map(Pellet::toJSON).toList());
-        gameData.put("viruses", viruses.values().stream().parallel().filter(virus ->
-                virus.visibilityCulling(camera)
-        ).map(Virus::toJSON).toList());
-        gameData.put("players", players.values().stream().parallel().filter(player ->
-                player.visibilityCulling(camera)
-        ).map(Player::toJSON).toList());
+        return new JSONObject()
+                .put("foods", foods.values().stream().parallel().filter(food ->
+                        food.visibilityCulling(camera)
+                ).map(Food::toJSON).toList())
+                .put("pellets", pellets.values().stream().parallel().filter(pellets1 ->
+                        pellets1.visibilityCulling(camera)
+                ).map(Pellet::toJSON).toList())
+                .put("viruses", viruses.values().stream().parallel().filter(virus ->
+                        virus.visibilityCulling(camera)
+                ).map(Virus::toJSON).toList())
+                .put("players", players.values().stream().parallel().filter(player ->
+                        player.visibilityCulling(camera)
+                ).map(Player::toJSON).toList());
+    }
 
-        return gameData;
+    public JSONObject getLeaderboard(CustomID playerUUID) {
+        List<JSONObject> sortedPlayers = players.values()
+                .stream()
+                .sorted((pl1, pl2) -> (int) (pl2.getMass() - pl1.getMass()))
+                .map(player ->
+                        new JSONObject()
+                                .put("player_uuid", player.uuid.toString())
+                                .put("username", player.identifyPacket.username())
+                )
+                .toList();
+
+        JSONArray leaderboard = new JSONArray(sortedPlayers.stream().limit(10).toList());
+
+        return new JSONObject()
+                .put("leaderboard", leaderboard)
+                .put("position", sortedPlayers.indexOf(
+                                sortedPlayers.stream()
+                                        .filter(player ->
+                                                player.getString("player_uuid").equals(playerUUID.toString())
+                                        )
+                                        .findFirst()
+                                        .get()
+                        )
+                );
     }
 
     public double getTps() {
