@@ -14,11 +14,9 @@ import javafx.util.Pair;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static ceccs.game.configs.FoodConfigs.maxFoodCount;
 import static ceccs.game.configs.VirusConfigs.maxVirusCount;
@@ -170,17 +168,19 @@ public class Game {
 
         JSONArray leaderboard = new JSONArray(sortedPlayers.stream().limit(10).toList());
 
+        Optional<JSONObject> playerObject = sortedPlayers.stream()
+                .filter(player ->
+                        player.getString("player_uuid").equals(playerUUID.toString())
+                )
+                .findFirst();
+
+        AtomicInteger pos = new AtomicInteger(-1);
+
+        playerObject.ifPresent(player -> pos.set(sortedPlayers.indexOf(player)));
+
         return new JSONObject()
                 .put("leaderboard", leaderboard)
-                .put("position", sortedPlayers.indexOf(
-                                sortedPlayers.stream()
-                                        .filter(player ->
-                                                player.getString("player_uuid").equals(playerUUID.toString())
-                                        )
-                                        .findFirst()
-                                        .get()
-                        )
-                );
+                .put("position", pos.get());
     }
 
     public double getTps() {
