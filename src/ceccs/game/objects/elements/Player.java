@@ -144,8 +144,12 @@ public class Player {
                 getCamera(), game.viruses, game.foods, game.pellets
         ));
 
+        ArrayList<CustomID> uuidList = new ArrayList<>(playerBlobs.keySet());
+
         for (int i = playerBlobs.size() - 1; i >= 0; --i) {
-            ArrayList<CustomID> uuidList = new ArrayList<>(playerBlobs.keySet());
+            if (i >= uuidList.size()) {
+                continue;
+            }
 
             PlayerBlob playerBlob = playerBlobs.get(uuidList.get(i));
 
@@ -156,34 +160,54 @@ public class Player {
             ArrayList<Blob> collideBlobs = allBlobs
                     .stream()
                     .parallel()
-                    .filter(blob -> Utilities.checkCollision(blob, playerBlob))
+                    .filter(blob -> {
+                        try {
+                            return Utilities.checkCollision(blob, playerBlob);
+                        } catch (InternalException exception) {
+                            System.err.println("player failed to check collision");
+
+                            exception.printStackTrace();
+
+                            return false;
+                        }
+                    })
                     .collect(Collectors.toCollection(ArrayList::new));
 
             playerBlob.tickDelay(time);
             playerBlob.collisionTick();
 
             for (int j = playerBlobs.size() - 1; j >= 0; --j) {
+                if (j >= uuidList.size()) {
+                    continue;
+                }
+
                 PlayerBlob checkBlob = playerBlobs.get(uuidList.get(j));
 
                 if (checkBlob == null || playerBlob.uuid == checkBlob.uuid) {
                     continue;
                 }
 
-                if (
-                        playerBlob.cooldowns.merge < time &&
-                                checkBlob.cooldowns.merge < time
-                ) {
-                    if (checkCollision(playerBlob, checkBlob) && j > i) {
-                        playerBlob.mass += checkBlob.mass;
+                try {
+                    if (
+                            playerBlob.cooldowns.merge < time &&
+                                    checkBlob.cooldowns.merge < time
+                    ) {
+                        if (checkCollision(playerBlob, checkBlob) && j > i) {
+                            playerBlob.mass += checkBlob.mass;
 
-                        checkBlob.removeFromMap();
+                            checkBlob.removeFromMap();
+                        }
+                    } else if (checkTouch(playerBlob, checkBlob) || checkCollision(playerBlob, checkBlob)) {
+                        double collisionTheta = blobTheta(playerBlob, checkBlob);
+                        double collisionDelta = overlapDelta(playerBlob, checkBlob);
+
+                        checkBlob.axForces.add(collisionDelta * Math.cos(collisionTheta));
+                        checkBlob.ayForces.add(collisionDelta * Math.sin(collisionTheta));
                     }
-                } else if (checkTouch(playerBlob, checkBlob) || checkCollision(playerBlob, checkBlob)) {
-                    double collisionTheta = blobTheta(playerBlob, checkBlob);
-                    double collisionDelta = overlapDelta(playerBlob, checkBlob);
+                } catch (InternalException exception) {
+                    System.err.println("player failed to check merge");
 
-                    checkBlob.axForces.add(collisionDelta * Math.cos(collisionTheta));
-                    checkBlob.ayForces.add(collisionDelta * Math.sin(collisionTheta));
+                    exception.printStackTrace();
                 }
             }
 
@@ -192,27 +216,33 @@ public class Player {
 
                 double rDiff = playerBlob.getPhysicsRadius() - blob.getPhysicsRadius();
 
-                if (checkCollision(playerBlob, blob) && rDiff > 0) {
-                    switch (blob.getType()) {
-                        case FOOD -> playerBlob.mass += blob.mass;
-                        case PELLET -> playerBlob.mass += pelletConsumeMass;
-                        case SPIKE -> {
-                            playerBlob.mass += virusConsumeMass;
+                try {
+                    if (checkCollision(playerBlob, blob) && rDiff > 0) {
+                        switch (blob.getType()) {
+                            case FOOD -> playerBlob.mass += blob.mass;
+                            case PELLET -> playerBlob.mass += pelletConsumeMass;
+                            case SPIKE -> {
+                                playerBlob.mass += virusConsumeMass;
 
-                            if (playerBlobs.size() < playerMaxSplits) {
-                                try {
-                                    playerSplit(time, true, playerBlob);
-                                } catch (InternalException exception) {
-                                    exception.printStackTrace();
+                                if (playerBlobs.size() < playerMaxSplits) {
+                                    try {
+                                        playerSplit(time, true, playerBlob);
+                                    } catch (InternalException exception) {
+                                        exception.printStackTrace();
 
-                                    System.err.println("failed to split");
+                                        System.err.println("failed to split");
+                                    }
                                 }
                             }
+                            default -> System.out.println("unknown blob interaction type: " + blob.getType());
                         }
-                        default -> System.out.println("unknown blob interaction type: " + blob.getType());
-                    }
 
-                    blob.removeFromMap();
+                        blob.removeFromMap();
+                    }
+                } catch (InternalException exception) {
+                    System.err.println("player failed to check collision with env");
+
+                    exception.printStackTrace();
                 }
             }
 
@@ -244,10 +274,16 @@ public class Player {
 
                     double rDiff = playerBlob.getPhysicsRadius() - enemyBlob.getPhysicsRadius();
 
-                    if (checkCollision(enemyBlob, playerBlob) && rDiff > 0) {
-                        playerBlob.mass += enemyBlob.mass;
+                    try {
+                        if (checkCollision(enemyBlob, playerBlob) && rDiff > 0) {
+                            playerBlob.mass += enemyBlob.mass;
 
-                        enemyBlob.removeFromMap();
+                            enemyBlob.removeFromMap();
+                        }
+                    } catch (InternalException exception) {
+                        System.err.println("player failed to check collision with enemy blob");
+
+                        exception.printStackTrace();
                     }
                 }
             }
@@ -359,12 +395,18 @@ public class Player {
 
             double pelletRadius = Math.sqrt(pelletMass / Math.PI);
 
-            double[] pos = repositionBlob(playerBlob, pelletRadius, theta);
+            try {
+                double[] pos = repositionBlob(playerBlob, pelletRadius, theta);
 
-            CustomID pelletUUID = CustomID.randomID();
-            game.pellets.put(pelletUUID, new Pellet(pos[0], pos[1], theta, pelletMass, playerBlob.fill, game, pelletUUID));
+                CustomID pelletUUID = CustomID.randomID();
+                game.pellets.put(pelletUUID, new Pellet(pos[0], pos[1], theta, pelletMass, playerBlob.fill, game, pelletUUID));
 
-            playerBlob.cooldowns.pellet = time;
+                playerBlob.cooldowns.pellet = time;
+            } catch (InternalException exception) {
+                System.err.println("player failed to send pellet");
+
+                exception.printStackTrace();
+            }
         });
     }
 

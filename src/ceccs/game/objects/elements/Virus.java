@@ -5,6 +5,7 @@ import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.utils.PhysicsMap;
 import ceccs.game.utils.Utilities;
 import ceccs.network.utils.CustomID;
+import ceccs.utils.InternalException;
 import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
@@ -79,7 +80,17 @@ public class Virus extends Blob {
 
         ArrayList<Pellet> pellets = game.pellets.values()
                 .stream()
-                .filter(blob -> Utilities.checkCollision(blob, this))
+                .filter(blob -> {
+                    try {
+                        return checkCollision(blob, this);
+                    } catch (InternalException exception) {
+                        System.err.println("failed to check collision");
+
+                        exception.printStackTrace();
+
+                        return false;
+                    }
+                })
                 .collect(Collectors.toCollection(ArrayList::new));
 
         for (int i = pellets.size() - 1; i >= 0; --i) {
@@ -87,30 +98,42 @@ public class Virus extends Blob {
 
             double rDiff = pellet.getPhysicsRadius() - getPhysicsRadius();
 
-            if (checkCollision(this, pellet) && rDiff < 0) {
-                mass += pellet.mass;
+            try {
+                if (checkCollision(this, pellet) && rDiff < 0) {
+                    mass += pellet.mass;
 
-                if (mass >= virusCriticalMass) {
-                    split(pellet);
+                    if (mass >= virusCriticalMass) {
+                        split(pellet);
+                    }
+
+                    pellet.removeFromMap();
                 }
+            } catch (InternalException exception) {
+                System.err.println("virus collision tick failed check with pellet");
 
-                pellet.removeFromMap();
+                exception.printStackTrace();
             }
         }
     }
 
     private void split(Pellet criticalPellet) {
-        double theta = Math.atan2(
-                criticalPellet.vy,
-                criticalPellet.vx
-        );
+        try {
+            double theta = Math.atan2(
+                    criticalPellet.vy,
+                    criticalPellet.vx
+            );
 
-        mass /= 2;
+            mass /= 2;
 
-        double[] pos = repositionBlob(this, getPhysicsRadius(), theta);
+            double[] pos = repositionBlob(this, getPhysicsRadius(), theta);
 
-        CustomID splitUUID = CustomID.randomID();
-        game.viruses.put(splitUUID, new Virus(pos[0], pos[1], theta, mass, game, splitUUID));
+            CustomID splitUUID = CustomID.randomID();
+            game.viruses.put(splitUUID, new Virus(pos[0], pos[1], theta, mass, game, splitUUID));
+        } catch (InternalException exception) {
+            System.err.println("virus failed to split");
+
+            exception.printStackTrace();
+        }
     }
 
 }
