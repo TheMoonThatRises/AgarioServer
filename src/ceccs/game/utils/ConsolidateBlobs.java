@@ -6,6 +6,7 @@ import ceccs.network.utils.CustomID;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class ConsolidateBlobs {
 
@@ -13,15 +14,15 @@ public class ConsolidateBlobs {
     public static ArrayList<Blob> convert(Camera camera, AbstractMap<CustomID, ? extends Blob>... blobs) {
         ArrayList<Blob> output = new ArrayList<>();
 
-        for (AbstractMap<CustomID, ? extends Blob> blobBlob : blobs) {
-            output.addAll(
-                    blobBlob.values()
-                            .stream()
-                            .parallel()
-                            .filter(blob -> blob.visibilityCulling(camera))
-                            .toList()
-            );
-        }
+        Arrays.stream(blobs)
+                .parallel()
+                .forEach(blobBlob -> output.addAll(
+                        blobBlob.values()
+                                .stream()
+                                .parallel()
+                                .filter(blob -> blob.visibilityCulling(camera))
+                                .toList()
+                ));
 
         return output;
     }
