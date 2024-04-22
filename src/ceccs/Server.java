@@ -46,15 +46,17 @@ public class Server {
 
         Scanner scanner = new Scanner(System.in);
 
-        System.out.print("load previous server config? ([y]/n): ");
+        if (!configs.getProperty("server.ip").isEmpty() && !configs.getProperty("server.port").isEmpty()) {
+            System.out.print("load previous server config? ([y]/n): ");
 
-        if (!scanner.nextLine().toLowerCase().contains("n")) {
-            serverIp = configs.getProperty("server.ip");
-            serverPort = Integer.parseInt(configs.getProperty("server.port"));
+            if (!scanner.nextLine().toLowerCase().contains("n")) {
+                serverIp = configs.getProperty("server.ip");
+                serverPort = Integer.parseInt(configs.getProperty("server.port"));
 
-            System.out.println();
+                System.out.println();
 
-            return new InetSocketAddress(serverIp, serverPort);
+                return new InetSocketAddress(serverIp, serverPort);
+            }
         }
 
         while (serverIp.isEmpty()) {
