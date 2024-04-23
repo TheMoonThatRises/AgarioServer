@@ -2,6 +2,7 @@ package ceccs.game.objects;
 
 import ceccs.game.objects.elements.Player;
 import ceccs.utils.InternalException;
+import org.json.JSONObject;
 
 public class Camera {
 
@@ -53,6 +54,15 @@ public class Camera {
 
     public double getScale() {
         return scale;
+    }
+
+    public JSONObject toJSON() {
+        return new JSONObject()
+                .put("x", x)
+                .put("y", y)
+                .put("scale", scale)
+                .put("screen_width", screenWidth)
+                .put("screen_height", screenHeight);
     }
 
 }

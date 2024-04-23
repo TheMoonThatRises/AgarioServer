@@ -117,9 +117,7 @@ public class Blob {
                         relRadius < 0.5
         );
 
-        return camera.getScale() < 3 && defaultVisibility && mass < 100
-                ? Utilities.random.nextDouble() > 0.6
-                : defaultVisibility;
+        return (!(camera.getScale() < 3) || !(mass < 10)) && defaultVisibility;
     }
 
     public JSONObject toJSON() {

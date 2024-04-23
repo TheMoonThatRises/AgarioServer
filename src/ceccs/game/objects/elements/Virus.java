@@ -81,6 +81,10 @@ public class Virus extends Blob {
         ArrayList<Pellet> pellets = game.pellets.values()
                 .stream()
                 .filter(blob -> {
+                    if (blob == null) {
+                        return false;
+                    }
+
                     try {
                         return checkCollision(blob, this);
                     } catch (InternalException exception) {

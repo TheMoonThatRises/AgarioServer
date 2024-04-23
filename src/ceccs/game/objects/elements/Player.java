@@ -65,7 +65,7 @@ public class Player {
         this(
                 Utilities.random.nextDouble(PhysicsMap.width),
                 Utilities.random.nextDouble(PhysicsMap.height),
-                0, 0, 1_000,
+                0, 0, playerStartMass,
                 Utilities.randomColor(), uuid, identifyPacket, game, playerSocket
         );
     }
@@ -161,6 +161,10 @@ public class Player {
                     .stream()
                     .parallel()
                     .filter(blob -> {
+                        if (blob == null) {
+                            return false;
+                        }
+
                         try {
                             return Utilities.checkCollision(blob, playerBlob);
                         } catch (InternalException exception) {
@@ -295,21 +299,19 @@ public class Player {
             return;
         }
 
-        int maxSplit = playerBlobs.size() - 1;
-        double spikedSplitSize = 0;
+        int maxSplit = Math.min(playerBlobs.size() - 1, playerMaxSplits / 2);
         double splitCircumference = 0;
 
         if (wasSpike) {
-            maxSplit = (int) (spikedBlob.mass / playerMinSplitSize) - 1;
+            maxSplit = Math.min((int) (spikedBlob.mass / playerMinSplitSize) - 1, playerMaxSplits - 1);
 
             if (maxSplit <= 0) {
                 throw new InternalException("unsafe value: max split = " + maxSplit);
             }
 
-            spikedSplitSize = spikedBlob.mass / maxSplit;
-            splitCircumference = Math.sqrt(spikedSplitSize / Math.PI) * maxSplit / Math.PI;
+            splitCircumference = Math.sqrt(playerMinSplitSize / Math.PI) * maxSplit / Math.PI;
 
-            spikedBlob.mass = spikedSplitSize;
+            spikedBlob.mass -= playerMinSplitSize * maxSplit;
         }
 
         ArrayList<CustomID> uuidList = new ArrayList<>(
@@ -324,8 +326,9 @@ public class Player {
             PlayerBlob playerBlob = wasSpike ? spikedBlob : playerBlobs.get(uuidList.get(i));
 
             if (
-                    playerBlob.mass < playerMinSplitSize ||
-                            (!wasSpike && playerBlob.cooldowns.split + playerSplitCooldown > time)
+                    !wasSpike &&
+                            (playerBlob.mass < playerMinSplitSize ||
+                                    playerBlob.cooldowns.split + playerSplitCooldown > time)
             ) {
                 continue;
             }
@@ -337,7 +340,7 @@ public class Player {
                     mouseEvent.x() - playerBlob.getRelativeX(this)
             );
 
-            double splitSize = wasSpike ? spikedSplitSize : playerBlob.mass / 2;
+            double splitSize = wasSpike ? playerMinSplitSize : playerBlob.mass / 2;
 
             if (!wasSpike) {
                 playerBlob.mass -= splitSize;
@@ -448,6 +451,7 @@ public class Player {
         return new JSONObject()
                 .put("uuid", uuid.toString())
                 .put("username", identifyPacket.username())
+                .put("camera", getCamera().toJSON())
                 .put("player_blobs", blobArray);
     }
 
@@ -587,7 +591,8 @@ public class Player {
         public void tickDelay(long time) {
             if (lastDecayTick + 1_000_000_000 < time) {
                 if (mass > playerMinMassDecay) {
-                    mass *= 0.998;
+//                    mass *= 0.998;
+                    mass *= 1.05;
                 }
 
                 lastDecayTick = time;
