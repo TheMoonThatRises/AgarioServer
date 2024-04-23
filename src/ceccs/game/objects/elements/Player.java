@@ -591,8 +591,7 @@ public class Player {
         public void tickDelay(long time) {
             if (lastDecayTick + 1_000_000_000 < time) {
                 if (mass > playerMinMassDecay) {
-//                    mass *= 0.998;
-                    mass *= 1.05;
+                    mass *= 0.998;
                 }
 
                 lastDecayTick = time;
