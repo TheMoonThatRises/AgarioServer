@@ -3,7 +3,6 @@ package ceccs.game.objects.elements;
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.objects.Camera;
 import ceccs.game.utils.PhysicsMap;
-import ceccs.game.utils.Utilities;
 import ceccs.network.utils.CustomID;
 import javafx.scene.paint.Paint;
 import org.json.JSONObject;
