@@ -10,7 +10,7 @@ public class PlayerConfigs {
     final static public double playerMinSplitSize = 35;
     final static public long playerSplitCooldown = 200_000_000;
     final static public double playerSplitVelocity = 4;
-    final static public double playerSplitDecay = 0.1;
+    final static public double playerSplitDecay = 0.08;
 
     final static public double playerMinMassDecay = 9;
 
