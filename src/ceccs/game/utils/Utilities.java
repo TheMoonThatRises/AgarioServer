@@ -4,12 +4,12 @@ import ceccs.game.objects.elements.Blob;
 import ceccs.utils.InternalException;
 import javafx.scene.paint.Color;
 
-import java.util.Random;
+import java.security.SecureRandom;
 
 public class Utilities {
 
-    final public static Random random = new Random();
-    final private static boolean randomise = false;
+    final public static SecureRandom random = new SecureRandom();
+    final private static boolean randomise = true;
     final private static long seed = 3249871132234509L;
 
     static {
