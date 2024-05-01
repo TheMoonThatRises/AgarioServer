@@ -7,7 +7,6 @@ import ceccs.utils.Configurations;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.Arrays;
 import java.util.Scanner;
 
 public class Server {
