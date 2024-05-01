@@ -2,15 +2,17 @@ package ceccs;
 
 import ceccs.game.Game;
 import ceccs.network.NetworkHandler;
+import ceccs.network.utils.AddressCompress;
 import ceccs.utils.Configurations;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class Server {
 
-    final public static double maxFramerate = 60;
+    final public static double maxFramerate = 100;
 
     final public static Configurations configs = Configurations.shared;
 
@@ -26,7 +28,7 @@ public class Server {
         game.loadEnvironment();
 
         System.out.println("loading network handler");
-        System.out.println("using address " + server.getAddress() + ":" + server.getPort());
+        System.out.println("using address " + server.getAddress().getHostAddress() + ":" + server.getPort());
         NetworkHandler networkHandler = new NetworkHandler(server, game);
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -36,6 +38,14 @@ public class Server {
 
         System.out.println("starting network handler");
         networkHandler.start();
+
+        System.out.println(
+                "server code: " +
+                        AddressCompress.encodeAddress(
+                                server.getAddress().getHostAddress(),
+                                String.valueOf(server.getPort())
+                        )
+        );
 
         game.startHeartbeat();
     }
