@@ -1,5 +1,6 @@
 package ceccs.network.utils;
 
+import ceccs.utils.InternalException;
 import javafx.util.Pair;
 
 import java.util.ArrayList;
@@ -60,21 +61,33 @@ public class AddressCompress {
         return encodeLong(addressNum);
     }
 
-    public static Pair<String, Integer> decodeAddress(String encoded) {
+    public static Pair<String, Integer> decodeAddress(String encoded) throws InternalException {
         String addressNum = String.valueOf(decodeLong(encoded));
 
+        if (addressNum.length() != 17) {
+            throw new InternalException("invalid server code");
+        }
+
         int port = Integer.parseInt(addressNum.substring(addressNum.length() - 5));
+
+        if (port < 0 || port > 65535) {
+            throw new InternalException("invalid server code");
+        }
 
         addressNum = addressNum.substring(0, addressNum.length() - 5);
 
         String[] ipParts = new String[4];
 
         for (int i = addressNum.length(); i > 0; i -= 3) {
-            ipParts[(i / 3) - 1] = String.valueOf(
-                    Integer.parseInt(
-                            addressNum.substring(Math.max(i - 3, 0), i)
-                    )
+            int ipPart = Integer.parseInt(
+                    addressNum.substring(Math.max(i - 3, 0), i)
             );
+
+            if (ipPart < 0 || ipPart > 255) {
+                throw new InternalException("invalid server code");
+            }
+
+            ipParts[(i / 3) - 1] = String.valueOf(ipPart);
         }
 
         String ip = String.join(".", ipParts);
