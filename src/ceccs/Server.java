@@ -18,7 +18,7 @@ public class Server {
     public static void main(String[] args) throws IOException {
         InetSocketAddress server = getServer();
 
-        configs.setProperty("server.ip", server.getHostString());
+        configs.setProperty("server.ip", server.getAddress().getHostAddress());
         configs.setProperty("server.port", String.valueOf(server.getPort()));
 
         System.out.println("spinning up game env");
