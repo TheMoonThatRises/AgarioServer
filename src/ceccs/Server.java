@@ -16,10 +16,12 @@ public class Server {
     final public static Configurations configs = Configurations.shared;
 
     public static void main(String[] args) throws IOException {
-        InetSocketAddress server = getServer();
+        queryConfigs();
 
-        configs.setProperty("server.ip", server.getAddress().getHostAddress());
-        configs.setProperty("server.port", String.valueOf(server.getPort()));
+        InetSocketAddress server = new InetSocketAddress(
+                configs.getProperty("server.ip"),
+                Integer.parseInt(configs.getProperty("server.port"))
+        );
 
         System.out.println("spinning up game env");
         Game game = new Game();
@@ -49,22 +51,22 @@ public class Server {
         game.startHeartbeat();
     }
 
-    private static InetSocketAddress getServer() {
+    private static void queryConfigs() {
         String serverIp = "";
         Integer serverPort = null;
 
         Scanner scanner = new Scanner(System.in);
 
-        if (!configs.getProperty("server.ip").isEmpty() && !configs.getProperty("server.port").isEmpty()) {
+        if (
+                !configs.getProperty("server.ip").isEmpty() &&
+                        !configs.getProperty("server.port").isEmpty()
+        ) {
             System.out.print("load previous server config? ([y]/n): ");
 
             if (!scanner.nextLine().toLowerCase().contains("n")) {
-                serverIp = configs.getProperty("server.ip");
-                serverPort = Integer.parseInt(configs.getProperty("server.port"));
-
                 System.out.println();
 
-                return new InetSocketAddress(serverIp, serverPort);
+                return;
             }
         }
 
@@ -88,7 +90,8 @@ public class Server {
 
         System.out.println();
 
-        return new InetSocketAddress(serverIp, serverPort);
+        configs.setProperty("server.ip", serverIp);
+        configs.setProperty("server.port", String.valueOf(serverPort));
     }
 
 }

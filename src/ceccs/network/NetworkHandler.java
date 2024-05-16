@@ -5,6 +5,7 @@ import ceccs.game.Game;
 import ceccs.game.utils.PhysicsMap;
 import ceccs.network.data.*;
 import ceccs.network.utils.CustomID;
+import ceccs.network.utils.GZip;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -14,12 +15,13 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class NetworkHandler {
+
+    final private static int maxPacketSize = 65_534;
 
     final private static long timeout = 5_000_000_000L;
 
@@ -43,7 +45,7 @@ public class NetworkHandler {
 
         this.socketListener = new Thread(() -> {
             while (true) {
-                byte[] buf = new byte[65534];
+                byte[] buf = new byte[maxPacketSize];
                 DatagramPacket inPacket = new DatagramPacket(buf, buf.length);
 
                 try {
@@ -107,68 +109,82 @@ public class NetworkHandler {
             String received = new String(packet.getData());
             NetworkPacket networkPacket = NetworkPacket.fromString(received);
 
-            Optional<OP_CODES> opcode = OP_CODES.fromValue(networkPacket.op());
+            OP_CODES opcode = networkPacket.op();
             JSONObject packetData = networkPacket.data();
 
-            opcode.ifPresentOrElse(op -> {
-                if (op != OP_CODES.CLIENT_IDENTIFY && !playerSockets.containsKey(playerUUID)) {
-                    handleWritePacket(new PlayerSocket(incomingAddress, port), OP_CODES.CLIENT_UNIDENTIFIED_ERROR);
+            if (opcode == OP_CODES.GZIP_PACKET) {
+                try {
+                    GZipPacket gZipPacket = GZipPacket.fromJSON(packetData);
+
+                    opcode = gZipPacket.op();
+                    packetData = new JSONObject(new String(GZip.decompress(gZipPacket.data())));
+                } catch (IOException exception) {
+                    exception.printStackTrace();
+
+                    System.err.println("failed to decompress gzip packet: " + exception);
 
                     return;
                 }
+            }
 
-                switch (op) {
-                    case CLIENT_IDENTIFY -> {
-                        PlayerSocket playerSocket = new PlayerSocket(incomingAddress, port);
-                        playerSockets.put(playerUUID, playerSocket);
-                        game.spawnPlayer(playerSocket, IdentifyPacket.fromJSON(packetData));
+            if (opcode != OP_CODES.CLIENT_IDENTIFY && !playerSockets.containsKey(playerUUID)) {
+                handleWritePacket(new PlayerSocket(incomingAddress, port), OP_CODES.CLIENT_UNIDENTIFIED_ERROR);
 
-                        System.out.printf(
-                                "player with uuid %s and address %s:%d requested to connect\n",
-                                playerUUID, incomingAddress, port
-                        );
+                return;
+            }
 
-                        handleWritePacket(
-                                playerSockets.get(playerUUID),
-                                OP_CODES.SERVER_IDENTIFY_OK,
-                                new RegisterPacket(
-                                        PhysicsMap.width,
-                                        PhysicsMap.height,
-                                        Server.maxFramerate,
-                                        playerUUID
-                                ).toJSON()
-                        );
-                    }
-                    case CLIENT_PING -> {
-                        playerSockets.get(playerUUID).updateLastPing();
+            switch (opcode) {
+                case CLIENT_IDENTIFY -> {
+                    PlayerSocket playerSocket = new PlayerSocket(incomingAddress, port);
+                    playerSockets.put(playerUUID, playerSocket);
+                    game.spawnPlayer(playerSocket, IdentifyPacket.fromJSON(packetData));
 
-                        handleWritePacket(
-                                playerSockets.get(playerUUID),
-                                OP_CODES.SERVER_PONG,
-                                new JSONObject()
-                                        .put("tps", game.getTps())
-                                        .put("leaderboard", game.getLeaderboard(playerUUID))
-                        );
-                    }
-                    case CLIENT_MOUSE_UPDATE -> game.updatePlayerMouse(playerUUID, MousePacket.fromJSON(packetData));
-                    case CLIENT_KEYBOARD_UPDATE -> game.updatePlayerKey(playerUUID, KeyPacket.fromJSON(packetData));
-                    case CLIENT_TERMINATE -> {
-                        playerSockets.get(playerUUID).setTerminate();
+                    System.out.printf(
+                            "player with uuid %s and address %s:%d requested to connect\n",
+                            playerUUID, incomingAddress, port
+                    );
 
-                        System.out.printf(
-                                "player with uuid %s and address %s:%d requested to terminate\n",
-                                playerUUID, incomingAddress, port
-                        );
-                    }
-                    default -> System.out.println("unhandled op code: " + op);
+                    handleWritePacket(
+                            playerSockets.get(playerUUID),
+                            OP_CODES.SERVER_IDENTIFY_OK,
+                            new RegisterPacket(
+                                    PhysicsMap.width,
+                                    PhysicsMap.height,
+                                    Server.maxFramerate,
+                                    playerUUID
+                            ).toJSON()
+                    );
                 }
-            }, () -> {
-                PlayerSocket playerSocket = playerSockets.containsKey(playerUUID)
-                        ? playerSockets.get(playerUUID)
-                        : new PlayerSocket(incomingAddress, port);
+                case CLIENT_PING -> {
+                    playerSockets.get(playerUUID).updateLastPing();
 
-                handleWritePacket(playerSocket, OP_CODES.OP_CODE_ERROR);
-            });
+                    handleWritePacket(
+                            playerSockets.get(playerUUID),
+                            OP_CODES.SERVER_PONG,
+                            new JSONObject()
+                                    .put("tps", game.getTps())
+                                    .put("leaderboard", game.getLeaderboard(playerUUID))
+                    );
+                }
+                case CLIENT_MOUSE_UPDATE -> game.updatePlayerMouse(playerUUID, MousePacket.fromJSON(packetData));
+                case CLIENT_KEYBOARD_UPDATE -> game.updatePlayerKey(playerUUID, KeyPacket.fromJSON(packetData));
+                case CLIENT_TERMINATE -> {
+                    playerSockets.get(playerUUID).setTerminate();
+
+                    System.out.printf(
+                            "player with uuid %s and address %s:%d requested to terminate\n",
+                            playerUUID, incomingAddress, port
+                    );
+                }
+                case OP_CODE_ERROR -> {
+                    PlayerSocket playerSocket = playerSockets.containsKey(playerUUID)
+                            ? playerSockets.get(playerUUID)
+                            : new PlayerSocket(incomingAddress, port);
+
+                    handleWritePacket(playerSocket, OP_CODES.OP_CODE_ERROR);
+                }
+                default -> System.out.println("unhandled op code: " + opcode);
+            }
         } catch (JSONException exception) {
             exception.printStackTrace();
 
@@ -181,6 +197,22 @@ public class NetworkHandler {
 
         byte[] byteData = networkPacket.toJSON().toString().getBytes();
 
+        if (byteData.length > maxPacketSize - 100) {
+            try {
+                GZipPacket gZipPacket = new GZipPacket(op, data);
+
+                networkPacket = new NetworkPacket(OP_CODES.GZIP_PACKET, gZipPacket.toJSON());
+
+                byteData = networkPacket.toJSON().toString().getBytes();
+            } catch (IOException exception) {
+                exception.printStackTrace();
+
+                System.err.println("failed to compress packet: " + exception);
+
+                return;
+            }
+        }
+
         DatagramPacket packet = new DatagramPacket(byteData, byteData.length, playerSocket.getAddress(), playerSocket.getPort());
 
         try {
@@ -188,7 +220,7 @@ public class NetworkHandler {
         } catch (IOException exception) {
             exception.printStackTrace();
 
-            System.err.println("failed to send game packet");
+            System.err.println("failed to send game packet: len " + byteData.length);
         }
     }
 
