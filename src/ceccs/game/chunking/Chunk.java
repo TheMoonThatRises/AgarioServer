@@ -24,6 +24,10 @@ public class Chunk {
         this.game = game;
     }
 
+    public boolean hasManagedItem(CustomID id) {
+        return managedItems.containsKey(id);
+    }
+
     public void addManagedItem(CustomID id, BLOB_TYPES type) {
         managedItems.put(id, type);
     }
@@ -45,13 +49,13 @@ public class Chunk {
         return game.players.get(id);
     }
 
-    public ArrayList<Blob> getAllBlobs() {
+    public ArrayList<Blob> getAllBlobType(BLOB_TYPES type) {
         return new ArrayList<>(
                 managedItems.entrySet()
-                .stream()
-                .filter(set -> set.getValue() != BLOB_TYPES.PLAYER)
-                .map(set -> getBlob(set.getKey(), set.getValue()))
-                .toList()
+                        .stream()
+                        .filter(set -> set.getValue() == type)
+                        .map(set -> getBlob(set.getKey(), set.getValue()))
+                        .toList()
         );
     }
 

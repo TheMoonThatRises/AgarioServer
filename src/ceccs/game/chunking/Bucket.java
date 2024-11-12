@@ -32,7 +32,7 @@ public class Bucket {
 
         for (int xloc = 0; xloc < PhysicsMap.width / PhysicsMap.chunkWidth; ++xloc) {
             for (int yloc = 0; yloc < PhysicsMap.height / PhysicsMap.chunkHeight; ++yloc) {
-                String locId = String.format("%d,%d", xloc, yloc);
+                String locId = locToId(xloc, yloc);
 
                 this.chunks.put(
                         locId,
@@ -42,11 +42,15 @@ public class Bucket {
         }
     }
 
-    private String getChunkLocId(double x, double y) {
-        int xloc = (int) Math.floor(x / PhysicsMap.chunkWidth);
-        int yloc = (int) Math.floor(y / PhysicsMap.chunkHeight);
+    private String locToId(int x, int y) {
+        return String.format("%d,%d", x, y);
+    }
 
-        String locId = String.format("%d,%d", xloc, yloc);
+    private String getChunkLocId(double x, double y) {
+        int xLoc = (int) Math.floor(x / PhysicsMap.chunkWidth);
+        int yLoc = (int) Math.floor(y / PhysicsMap.chunkHeight);
+
+        String locId = locToId(xLoc, yLoc);
 
         if (!this.chunks.containsKey(locId)) {
             System.err.printf("locId %s does not exist, defaulting to 0,0\n", locId);
@@ -72,7 +76,7 @@ public class Bucket {
         loc[0] += vx >= 0 ? 1 : -1;
         loc[1] += vy >= 0 ? 1 : -1;
 
-        String locId = String.format("%d,%d", loc[0], loc[1]);
+        String locId = locToId(loc[0], loc[1]);
 
         return chunks.containsKey(locId) ? locId : currLocId;
     }
@@ -107,7 +111,9 @@ public class Bucket {
             }
         }
 
-        if (!(blob.getType() == BLOB_TYPES.PLAYER && blobId == blob.uuid)) {
+        CustomID finalBlobId = blobId;
+
+        if (!(blob.getType() == BLOB_TYPES.PLAYER && blobId == blob.uuid && activeChunks.stream().noneMatch(id -> chunks.get(id).hasManagedItem(finalBlobId)))) {
             chunks.get(locId).addManagedItem(blobId, blob.getType());
         }
 
@@ -115,12 +121,23 @@ public class Bucket {
     }
 
     public ArrayList<Chunk> getVisibleChunks(Camera camera) {
-        return activeChunks.stream().filter(id -> {
-            Chunk chunk = chunks.get(id);
+        return new ArrayList<>(
+                activeChunks.stream().filter(id -> {
+                            int[] loc = getCoordFromLocId(id);
 
-            double relX = (chunk. - camera.getX()) * camera.getScale();
-            double relY = (y - camera.getY()) * camera.getScale();
-        });
+                            double relX = (loc[0] * PhysicsMap.chunkWidth - camera.getX()) * camera.getScale();
+                            double relY = (loc[1] * PhysicsMap.chunkHeight - camera.getY()) * camera.getScale();
+
+                            return !(
+                                    relX + PhysicsMap.chunkWidth < -10 ||
+                                            relX - PhysicsMap.chunkWidth > camera.getScreenWidth() + 10 ||
+                                            relY + PhysicsMap.chunkHeight < -10 ||
+                                            relY - PhysicsMap.chunkHeight > camera.getScreenHeight() + 10
+                            );
+                        })
+                        .map(chunks::get)
+                        .toList()
+        );
     }
 
     public void playerAdded(Player player) {

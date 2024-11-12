@@ -79,7 +79,7 @@ public class Virus extends Blob {
     public void collisionTick() {
         super.collisionTick();
 
-        ArrayList<Pellet> pellets = game.pellets.values()
+        ArrayList<Blob> pellets = parentChunk.getAllBlobType(BLOB_TYPES.PELLET)
                 .stream()
                 .filter(blob -> {
                     if (blob == null) {
@@ -99,7 +99,7 @@ public class Virus extends Blob {
                 .collect(Collectors.toCollection(ArrayList::new));
 
         for (int i = pellets.size() - 1; i >= 0; --i) {
-            Pellet pellet = pellets.get(i);
+            Blob pellet = pellets.get(i);
 
             double rDiff = pellet.getPhysicsRadius() - getPhysicsRadius();
 
@@ -121,7 +121,7 @@ public class Virus extends Blob {
         }
     }
 
-    private void split(Pellet criticalPellet) {
+    private void split(Blob criticalPellet) {
         try {
             double theta = Math.atan2(
                     criticalPellet.vy,

@@ -2,6 +2,7 @@ package ceccs.game.objects.elements;
 
 import ceccs.game.Game;
 import ceccs.game.chunking.Bucket;
+import ceccs.game.chunking.Chunk;
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.objects.Camera;
 import ceccs.game.utils.ConsolidateBlobs;
@@ -154,9 +155,15 @@ public class Player {
             return;
         }
 
-        ArrayList<Blob> allBlobs = new ArrayList<>(ConsolidateBlobs.convert(
-                getCamera(), game.viruses, game.foods, game.pellets
-        ));
+        ArrayList<ArrayList<Blob>> allVisibleBlobs = new ArrayList<>();
+
+        bucket.getVisibleChunks(getCamera()).forEach(chunk -> {
+            allVisibleBlobs.add(chunk.getAllBlobType(BLOB_TYPES.FOOD));
+            allVisibleBlobs.add(chunk.getAllBlobType(BLOB_TYPES.SPIKE));
+            allVisibleBlobs.add(chunk.getAllBlobType(BLOB_TYPES.PELLET));
+        });
+
+        ArrayList<Blob> allBlobs = ConsolidateBlobs.convert(allVisibleBlobs);
 
         ArrayList<CustomID> uuidList = new ArrayList<>(playerBlobs.keySet());
 
