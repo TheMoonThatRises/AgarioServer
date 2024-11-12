@@ -1,5 +1,6 @@
 package ceccs.game;
 
+import ceccs.game.chunking.Bucket;
 import ceccs.game.objects.Camera;
 import ceccs.game.objects.elements.Food;
 import ceccs.game.objects.elements.Pellet;
@@ -29,6 +30,7 @@ public class Game {
     final public ConcurrentHashMap<CustomID, Virus> viruses;
     final private ArrayList<Pair<PlayerSocket, IdentifyPacket>> spawnQueue;
     final private ArrayList<CustomID> despawnQueue;
+    final private Bucket bucket;
     final private TimerTask heartbeatTask;
     final private Timer heartbeat;
     private long lastTps;
@@ -43,6 +45,8 @@ public class Game {
         this.spawnQueue = new ArrayList<>();
         this.despawnQueue = new ArrayList<>();
 
+        this.bucket = new Bucket(this);
+
         this.heartbeat = new Timer("heartbeat");
 
         this.lastTps = System.nanoTime();
@@ -54,29 +58,35 @@ public class Game {
             public void run() {
                 if (!spawnQueue.isEmpty()) {
                     // spawn all queued players
-                    spawnQueue.forEach((playerInfo) ->
-                            players.put(
-                                    playerInfo.getKey().getID(),
-                                    new Player(playerInfo.getKey().getID(), playerInfo.getValue(), self, playerInfo.getKey())
-                            )
-                    );
+                    spawnQueue.forEach((playerInfo) -> {
+                        players.put(
+                                playerInfo.getKey().getID(),
+                                new Player(playerInfo.getKey().getID(), playerInfo.getValue(), self, playerInfo.getKey(), bucket)
+                        );
+
+                        bucket.playerAdded(players.get(playerInfo.getKey().getID()));
+                    });
                     spawnQueue.clear();
                 }
 
                 if (!despawnQueue.isEmpty()) {
                     // despawn all queued players
-                    despawnQueue.forEach(players::remove);
+                    despawnQueue.forEach(id -> {
+                        bucket.playerRemoved(id);
+                        players.remove(id);
+                    });
                     despawnQueue.clear();
                 }
 
                 // update physics
-                players.values().forEach(Player::positionTick);
-                pellets.values().forEach(Pellet::positionTick);
-                viruses.values().forEach(Virus::positionTick);
-
-                players.values().stream().parallel().forEach(player -> player.collisionTick(System.nanoTime()));
-                viruses.values().forEach(Virus::collisionTick);
-                pellets.values().forEach(Pellet::collisionTick);
+//                players.values().forEach(Player::positionTick);
+//                pellets.values().forEach(Pellet::positionTick);
+//                viruses.values().forEach(Virus::positionTick);
+//
+//                players.values().stream().parallel().forEach(player -> player.collisionTick(System.nanoTime()));
+//                viruses.values().forEach(Virus::collisionTick);
+//                pellets.values().forEach(Pellet::collisionTick);
+                bucket.tickBucket(System.nanoTime());
 
                 players.values().forEach(player -> player.keypressTicks(System.nanoTime()));
 
@@ -84,19 +94,23 @@ public class Game {
                 if (foods.size() < maxFoodCount) {
                     CustomID uuid = CustomID.randomID();
 
-                    foods.put(uuid, new Food(self, uuid));
+                    foods.put(uuid, new Food(self, uuid, bucket));
                 }
 
                 if (viruses.size() < maxVirusCount) {
                     CustomID uuid = CustomID.randomID();
 
-                    viruses.put(uuid, new Virus(self, uuid));
+                    viruses.put(uuid, new Virus(self, uuid, bucket));
                 }
 
                 tps = System.nanoTime() - lastTps;
                 lastTps = System.nanoTime();
             }
         };
+    }
+
+    public Player findParentPlayer(CustomID childBlobId) {
+        return players.values().stream().filter(player -> player.isChildBlob(childBlobId)).findFirst().orElse(null);
     }
 
     public void pauseHeartbeat() {
@@ -111,13 +125,13 @@ public class Game {
         for (int i = 0; i < maxFoodCount; ++i) {
             CustomID uuid = CustomID.randomID();
 
-            foods.put(uuid, new Food(this, uuid));
+            foods.put(uuid, new Food(this, uuid, bucket));
         }
 
         for (int i = 0; i < maxVirusCount; ++i) {
             CustomID uuid = CustomID.randomID();
 
-            viruses.put(uuid, new Virus(this, uuid));
+            viruses.put(uuid, new Virus(this, uuid, bucket));
         }
     }
 

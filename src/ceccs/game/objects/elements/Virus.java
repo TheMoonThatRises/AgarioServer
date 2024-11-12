@@ -1,6 +1,7 @@
 package ceccs.game.objects.elements;
 
 import ceccs.game.Game;
+import ceccs.game.chunking.Bucket;
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.utils.PhysicsMap;
 import ceccs.game.utils.Utilities;
@@ -22,11 +23,11 @@ public class Virus extends Blob {
     private int time;
     private boolean didFinish;
 
-    public Virus(Game game, CustomID uuid) {
+    public Virus(Game game, CustomID uuid, Bucket bucket) {
         super(
                 Utilities.random.nextDouble(PhysicsMap.width),
                 Utilities.random.nextDouble(PhysicsMap.height),
-                virusMass, Color.GREEN, uuid, game.viruses
+                virusMass, Color.GREEN, uuid, game.viruses, bucket
         );
 
         this.didFinish = true;
@@ -36,9 +37,9 @@ public class Virus extends Blob {
         this.game = game;
     }
 
-    public Virus(double x, double y, double theta, double mass, Game game, CustomID uuid) {
+    public Virus(double x, double y, double theta, double mass, Game game, CustomID uuid, Bucket bucket) {
         super(
-                x, y, mass, Color.GREEN, uuid, game.viruses
+                x, y, mass, Color.GREEN, uuid, game.viruses, bucket
         );
 
         this.projected = virusVelocity / virusFriction;
@@ -110,7 +111,7 @@ public class Virus extends Blob {
                         split(pellet);
                     }
 
-                    pellet.removeFromMap();
+                    pellet.deleteBlob();
                 }
             } catch (InternalException exception) {
                 System.err.println("virus collision tick failed check with pellet");
@@ -132,7 +133,7 @@ public class Virus extends Blob {
             double[] pos = repositionBlob(this, getPhysicsRadius(), theta);
 
             CustomID splitUUID = CustomID.randomID();
-            game.viruses.put(splitUUID, new Virus(pos[0], pos[1], theta, mass, game, splitUUID));
+            game.viruses.put(splitUUID, new Virus(pos[0], pos[1], theta, mass, game, splitUUID, super.bucket));
         } catch (InternalException exception) {
             System.err.println("virus failed to split");
 

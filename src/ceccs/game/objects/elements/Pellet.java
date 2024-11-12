@@ -1,6 +1,7 @@
 package ceccs.game.objects.elements;
 
 import ceccs.game.Game;
+import ceccs.game.chunking.Bucket;
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.network.utils.CustomID;
 import javafx.scene.paint.Paint;
@@ -15,12 +16,12 @@ public class Pellet extends Blob {
 
     private boolean didFinish;
 
-    public Pellet(double x, double y, double theta, double mass, Paint fill, Game game, CustomID uuid) {
+    public Pellet(double x, double y, double theta, double mass, Paint fill, Game game, CustomID uuid, Bucket bucket) {
         super(
                 x, y, 0, 0,
                 -pelletFriction * Math.cos(theta),
                 -pelletFriction * Math.sin(theta),
-                mass, fill, uuid, game.pellets
+                mass, fill, uuid, game.pellets, bucket
         );
 
         this.projected = pelletVelocity / pelletFriction;
