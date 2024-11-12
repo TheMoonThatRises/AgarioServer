@@ -7,6 +7,6 @@ public class FoodConfigs {
     final static public double foodMinSize = 1;
     final static public double foodMaxSize = 1;
 
-    final static public double maxFoodCount = (PhysicsMap.width * PhysicsMap.height) / (10 * 10);
+    final static public double maxFoodCount = (PhysicsMap.width * PhysicsMap.height) / (5 * 5);
 
 }

@@ -2,11 +2,13 @@ package ceccs.game.chunking;
 
 import ceccs.game.Game;
 import ceccs.game.objects.BLOB_TYPES;
+import ceccs.game.objects.Camera;
 import ceccs.game.objects.elements.Blob;
 import ceccs.game.objects.elements.Player;
 import ceccs.game.utils.PhysicsMap;
 import ceccs.network.utils.CustomID;
 
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,14 +36,7 @@ public class Bucket {
 
                 this.chunks.put(
                         locId,
-                        new Chunk(
-                                locId,
-                                xloc * PhysicsMap.chunkWidth,
-                                yloc * PhysicsMap.chunkHeight,
-                                PhysicsMap.chunkWidth,
-                                PhysicsMap.chunkHeight,
-                                game
-                        )
+                        new Chunk(locId, game)
                 );
             }
         }
@@ -62,16 +57,22 @@ public class Bucket {
         return locId;
     }
 
+    private int[] getCoordFromLocId(String locId) {
+        String[] locSplit = locId.split(",");
+
+        int xLoc = Integer.parseInt(locSplit[0]);
+        int yLoc = Integer.parseInt(locSplit[1]);
+
+        return new int[]{xLoc, yLoc};
+    }
+
     private String getDirChunkLocId(String currLocId, double vx, double vy) {
-        String[] locSplit = currLocId.split(",");
+        int[] loc = getCoordFromLocId(currLocId);
 
-        int xloc = Integer.parseInt(locSplit[0]);
-        int yloc = Integer.parseInt(locSplit[1]);
+        loc[0] += vx >= 0 ? 1 : -1;
+        loc[1] += vy >= 0 ? 1 : -1;
 
-        xloc += vx >= 0 ? 1 : -1;
-        yloc += vy >= 0 ? 1 : -1;
-
-        String locId = String.format("%d,%d", xloc, yloc);
+        String locId = String.format("%d,%d", loc[0], loc[1]);
 
         return chunks.containsKey(locId) ? locId : currLocId;
     }
@@ -113,6 +114,15 @@ public class Bucket {
         return chunks.get(locId);
     }
 
+    public ArrayList<Chunk> getVisibleChunks(Camera camera) {
+        return activeChunks.stream().filter(id -> {
+            Chunk chunk = chunks.get(id);
+
+            double relX = (chunk. - camera.getX()) * camera.getScale();
+            double relY = (y - camera.getY()) * camera.getScale();
+        });
+    }
+
     public void playerAdded(Player player) {
         String locId = getChunkLocId(player.getX(), player.getY());
 
@@ -128,10 +138,6 @@ public class Bucket {
     }
 
     public void tickBucket(long time) {
-        if (time % 1_000 == 0) {
-            System.out.println(activeChunks);
-        }
-
         for (String locId : activeChunks) {
             chunks.get(locId).tickChunkPosition();
         }
@@ -142,7 +148,7 @@ public class Bucket {
             chunk.tickChunkCollision(time);
 
             if (unloadQueue.containsKey(locId)) {
-                if (time - unloadQueue.get(locId) > 5_000_000_000L) {
+                if (time - unloadQueue.get(locId) > 3_000_000_000L) {
                     if (!chunk.hasActiveBlobs()) {
                         activeChunks.remove(locId);
                         unloadCooldown.remove(locId);
@@ -152,7 +158,7 @@ public class Bucket {
 
                     unloadQueue.remove(locId);
                 }
-            } else if (!unloadCooldown.containsKey(locId) || time - unloadCooldown.get(locId) > 5_000_000_000L) {
+            } else if (!unloadCooldown.containsKey(locId) || time - unloadCooldown.get(locId) > 3_000_000_000L) {
                 unloadQueue.put(locId, time);
             }
         }

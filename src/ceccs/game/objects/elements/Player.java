@@ -601,7 +601,9 @@ public class Player {
             axForces.clear();
             ayForces.clear();
 
-            parentChunk = bucket.updateChunkManagedItem(this);
+            if (x % PhysicsMap.chunkWidth <= PhysicsMap.chunkWidth / 3.0 || y % PhysicsMap.chunkHeight <= PhysicsMap.chunkHeight / 3.0) {
+                this.parentChunk = bucket.updateChunkManagedItem(this);
+            }
         }
 
         public void tickDelay(long time) {

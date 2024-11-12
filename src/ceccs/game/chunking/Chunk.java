@@ -6,30 +6,19 @@ import ceccs.game.objects.elements.Blob;
 import ceccs.game.objects.elements.Player;
 import ceccs.network.utils.CustomID;
 
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Chunk {
 
     final public String locId;
 
-    final private double x;
-    final private double y;
-
-    final private double height;
-    final private double width;
-
     final private ConcurrentHashMap<CustomID, BLOB_TYPES> managedItems;
 
     final private Game game;
 
-    public Chunk(String locId, double x, double y, double width, double height, Game game) {
+    public Chunk(String locId, Game game) {
         this.locId = locId;
-
-        this.x = x;
-        this.y = y;
-
-        this.height = height;
-        this.width = width;
 
         this.managedItems = new ConcurrentHashMap<>();
         this.game = game;
@@ -56,8 +45,21 @@ public class Chunk {
         return game.players.get(id);
     }
 
+    public ArrayList<Blob> getAllBlobs() {
+        return new ArrayList<>(
+                managedItems.entrySet()
+                .stream()
+                .filter(set -> set.getValue() != BLOB_TYPES.PLAYER)
+                .map(set -> getBlob(set.getKey(), set.getValue()))
+                .toList()
+        );
+    }
+
     public void tickChunkPosition() {
-        managedItems.forEach((id, type) -> {
+        managedItems.entrySet().stream().parallel().forEach(set -> {
+            BLOB_TYPES type = set.getValue();
+            CustomID id = set.getKey();
+
             if (type == BLOB_TYPES.PLAYER) {
                 Player player = getPlayer(id);
 
@@ -79,7 +81,10 @@ public class Chunk {
     }
 
     public void tickChunkCollision(long time) {
-        managedItems.forEach((id, type) -> {
+        managedItems.entrySet().stream().parallel().forEach(set -> {
+            BLOB_TYPES type = set.getValue();
+            CustomID id = set.getKey();
+
             if (type == BLOB_TYPES.PLAYER) {
                 Player player = getPlayer(id);
 
@@ -101,7 +106,7 @@ public class Chunk {
     }
 
     public boolean hasActiveBlobs() {
-        return managedItems.entrySet().stream().anyMatch(set -> {
+        return managedItems.entrySet().stream().parallel().anyMatch(set -> {
             if (set.getValue() == BLOB_TYPES.PLAYER) {
                 return true;
             } else {
