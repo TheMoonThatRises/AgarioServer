@@ -2,7 +2,6 @@ package ceccs.game.objects.elements;
 
 import ceccs.game.Game;
 import ceccs.game.chunking.Bucket;
-import ceccs.game.chunking.Chunk;
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.objects.Camera;
 import ceccs.game.utils.ConsolidateBlobs;

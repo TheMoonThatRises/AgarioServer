@@ -3,7 +3,6 @@ package ceccs.game.utils;
 import ceccs.game.objects.elements.Blob;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class ConsolidateBlobs {
 
