@@ -62,11 +62,7 @@ public class AddressCompress {
     }
 
     public static Pair<String, Integer> decodeAddress(String encoded) throws InternalException {
-        String addressNum = String.valueOf(decodeLong(encoded));
-
-        if (addressNum.length() != 17) {
-            throw new InternalException("invalid server code");
-        }
+        String addressNum = padString(String.valueOf(decodeLong(encoded)), "0", 17);
 
         int port = Integer.parseInt(addressNum.substring(addressNum.length() - 5));
 

@@ -1,6 +1,7 @@
 package ceccs.game.objects.elements;
 
 import ceccs.game.Game;
+import ceccs.game.chunking.Bucket;
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.utils.PhysicsMap;
 import ceccs.game.utils.Utilities;
@@ -11,12 +12,12 @@ import static ceccs.game.configs.FoodConfigs.foodMinSize;
 
 public class Food extends Blob {
 
-    public Food(Game game, CustomID uuid) {
+    public Food(Game game, CustomID uuid, Bucket bucket) {
         super(
                 Utilities.random.nextDouble(PhysicsMap.width),
                 Utilities.random.nextDouble(PhysicsMap.height),
                 foodMaxSize > foodMinSize ? Utilities.random.nextDouble(foodMinSize, foodMaxSize) : foodMaxSize,
-                Utilities.randomColor(), uuid, game.foods
+                Utilities.randomColor(), uuid, game.foods, bucket
         );
     }
 

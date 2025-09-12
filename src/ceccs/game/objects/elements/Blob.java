@@ -1,5 +1,7 @@
 package ceccs.game.objects.elements;
 
+import ceccs.game.chunking.Bucket;
+import ceccs.game.chunking.Chunk;
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.objects.Camera;
 import ceccs.game.utils.PhysicsMap;
@@ -12,21 +14,19 @@ import java.util.AbstractMap;
 public class Blob {
 
     final public CustomID uuid;
-
+    final protected Bucket bucket;
     protected double x;
     protected double y;
     protected double vx;
     protected double vy;
     protected double ax;
     protected double ay;
-
     protected double mass;
-
     protected Paint fill;
-
     protected AbstractMap<CustomID, ? extends Blob> parentMap;
+    protected Chunk parentChunk;
 
-    public Blob(double x, double y, double vx, double vy, double ax, double ay, double mass, Paint fill, CustomID uuid, AbstractMap<CustomID, ? extends Blob> parentMap) {
+    public Blob(double x, double y, double vx, double vy, double ax, double ay, double mass, Paint fill, CustomID uuid, AbstractMap<CustomID, ? extends Blob> parentMap, Bucket bucket) {
         this.x = x;
         this.y = y;
         this.vx = vx;
@@ -41,18 +41,26 @@ public class Blob {
         this.uuid = uuid;
 
         this.fill = fill;
+
+        this.bucket = bucket;
+        this.parentChunk = bucket.updateChunkManagedItem(this);
     }
 
-    public Blob(double x, double y, double mass, Paint fill, CustomID uuid, AbstractMap<CustomID, ? extends Blob> parentMap) {
-        this(x, y, 0, 0, 0, 0, mass, fill, uuid, parentMap);
+    public Blob(double x, double y, double mass, Paint fill, CustomID uuid, AbstractMap<CustomID, ? extends Blob> parentMap, Bucket bucket) {
+        this(x, y, 0, 0, 0, 0, mass, fill, uuid, parentMap, bucket);
     }
 
     public BLOB_TYPES getType() {
         return BLOB_TYPES.GENERIC;
     }
 
-    public void removeFromMap() {
+    public void deleteBlob() {
         parentMap.remove(uuid);
+        parentChunk.removeManagedItem(uuid);
+    }
+
+    public Chunk getParentChunk() {
+        return parentChunk;
     }
 
     public void positionTick() {
@@ -61,6 +69,10 @@ public class Blob {
 
         x += vx;
         y += vy;
+
+        if (x % PhysicsMap.chunkWidth <= PhysicsMap.chunkWidth / 3.0 || y % PhysicsMap.chunkHeight <= PhysicsMap.chunkHeight / 3.0) {
+            this.parentChunk = bucket.updateChunkManagedItem(this);
+        }
     }
 
     public void collisionTick() {
@@ -97,6 +109,14 @@ public class Blob {
 
     public void setY(double y) {
         this.y = y;
+    }
+
+    public double getVx() {
+        return vx;
+    }
+
+    public double getVy() {
+        return vy;
     }
 
     public double getPhysicsRadius() {
